@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('vm node version') {
             steps {
-                sh "chmod +x -R ${env.WORKSPACE}"
                 sh '''
+                   sudo su -
                    node -v
                    npm -v
                 '''
