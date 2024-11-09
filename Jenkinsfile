@@ -48,7 +48,7 @@ pipeline {
                     steps {
                         withCredentials([string(credentialsId: 'dependency-check-nvd-api-key', variable: 'NVD_API_KEY')]) {
                             sh '''
-                                 dependency-check --scan './' --out './' --format 'ALL' --prettyPrint --nvd-api-key $NVD_API_KEY
+                                 /var/lib/jenkins/caches/dependency-check --scan './' --out './' --format 'ALL' --prettyPrint --nvd-api-key $NVD_API_KEY
                             '''
                         }
                     }
