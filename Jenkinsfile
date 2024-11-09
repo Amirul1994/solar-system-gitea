@@ -51,8 +51,7 @@ pipeline {
                             --out './'
                             --format 'ALL'
                             --prettyPrint
-                            --nvd-api-key '${NVD_API_KEY}'  // Pass the NVD API key to the Dependency-Check command
-                        ''', odcInstallation: 'OWASP-DepCheck-11'
+                            ''', odcInstallation: 'OWASP-DepCheck-11'
                     }
                 }
             }
