@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('vm node version') {
             steps {
-                // the first command will switch the user without password  
+                sh "chmod +x -R ${env.WORKSPACE}"
                 sh '''
                    node -v
                    npm -v
