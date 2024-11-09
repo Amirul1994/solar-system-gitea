@@ -7,7 +7,8 @@ pipeline {
     stages {
         stage('vm node version') {
             steps {
-                withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
+                withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) 
+                {
                 sh '''
                    echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
                    
