@@ -48,7 +48,7 @@ pipeline {
                     --scan \'./\'
                     --out \'./\'
                     --format \'ALL\'
-                    --prettyPrint''', odcInstallation: 'OWASP-DepCheck-10'
+                    --prettyPrint''', odcInstallation: 'OWASP-DepCheck-11'
             }
         }
     }
