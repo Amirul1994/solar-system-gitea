@@ -12,6 +12,7 @@ pipeline {
                    echo $SUDO_PASS | sudo -S node -v
                    echo $SUDO_PASS | sudo -S npm -v
                 '''
+                }
             }
         }
     }
