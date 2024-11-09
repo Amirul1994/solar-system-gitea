@@ -7,6 +7,7 @@ pipeline {
     
     environment {
         USER = 'amirul'
+        NVD_API_KEY = credentials('dependency-check-nvd-api-key')
     }
 
     stages {
@@ -51,7 +52,9 @@ pipeline {
                             --scan \'./\'
                             --out \'./\'
                             --format \'ALL\'
-                            --prettyPrint''', odcInstallation: 'OWASP-DepCheck-11'
+                            --prettyPrint
+                            --nvd-api-key '${NVD_API_KEY}'
+                            ''', odcInstallation: 'OWASP-DepCheck-11'
             }
         }
       }
