@@ -5,8 +5,8 @@ pipeline {
         stage('vm node version') {
             steps {
                 sh '''
-                    node -v
-                    
+                   sudo node -v
+                   sudo npm -v
                 '''
             }
         }
