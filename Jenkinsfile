@@ -9,8 +9,8 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
                 sh '''
-                   echo $SUDO_PASS | sudo -S node -v
-                   echo $SUDO_PASS | sudo -S npm -v
+                   echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
+                   echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
                 '''
                 }
             }
