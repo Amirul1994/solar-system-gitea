@@ -30,6 +30,13 @@ pipeline {
             }
         }
 
+        stage('Verify User Context') {
+            steps {
+                sh 'whoami'
+            }
+        }
+
+
         stage('Dependency Scanning') {
             parallel {
                 stage('npm dependency audit') {
