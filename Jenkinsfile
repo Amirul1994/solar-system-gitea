@@ -51,6 +51,8 @@ pipeline {
                                                                 ''', 
                                      nvdCredentialsId: 'dependency-check-nvd-api-key', 
                                      odcInstallation: 'OWASP-DepCheck-11'
+                        
+                        dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
                 }
             }
