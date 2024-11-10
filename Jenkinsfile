@@ -3,6 +3,7 @@ pipeline {
 
     tools {
         nodejs 'nodejs-22-6-0'
+        dependencyCheck 'OWASP-DepCheck-10.3.0' // Specify the Dependency-Check tool version
     }
     
     environment {
@@ -44,21 +45,16 @@ pipeline {
                 stage('OWASP Dependency Check') {
                     steps {
                         script {
-                            def result = sh(script: '''
-                                dependency-check --scan './' 
-                                --out './' 
-                                --format 'ALL'
-                                --prettyPrint 
-                                --disableYarnAudit 
-                                --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
-                                --disableHostedSuppressions ''
-                            ''', returnStatus: true)
-
-                            if (result != 0) {
-                                echo "OWASP Dependency Check failed with exit code ${result} but continuing the pipeline."
-                            } else {
-                                echo "OWASP Dependency Check passed successfully."
-                            }
+                            // Run dependency-check with additional arguments
+                            dependencyCheck additionalArguments: ''' dependency-check --scan './' 
+                                                                    --out './' 
+                                                                    --format 'ALL'
+                                                                    --prettyPrint 
+                                                                    --disableYarnAudit 
+                                                                    --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
+                                                                    --disableHostedSuppressions ''', 
+                                             nvdCredentialsId: 'dependency-check-nvd-api-key', 
+                                             odcInstallation: 'OWASP-DepCheck-10.3.0'
                         }
                     }
                 }
