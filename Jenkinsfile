@@ -46,13 +46,12 @@ pipeline {
 
                 stage('OWASP Dependency Check') {
                      steps {
-                               dependencyCheck additionalArguments: '''--scan './' 
-                                                  --out './' 
-                                                  --format 'ALL' 
-                                                  --prettyPrint 
-                                                  --disableYarnAudit 
-                                                  --nvdApiKey $NVD_API_KEY
-                                                  --disableUnusedSuppressions''',
+                               dependencyCheck additionalArguments: 'dependency-check --scan \'./\' 
+                                                 --out \'./\' 
+                                                 --format \'ALL\' 
+                                                 --prettyPrint 
+                                                 --disableYarnAudit 
+                                                 --noupdate',
                                 nvdCredentialsId: 'dependency-check-nvd-api-key', 
                                 odcInstallation: 'OWASP-DepCheck-11'
                    }
