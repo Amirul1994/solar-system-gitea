@@ -30,12 +30,17 @@ pipeline {
             }
         }
 
-        stage('Verify User Context') {
+        stage('Install Dependency-Check') {
             steps {
-                sh 'whoami'
+                sh '''
+                    # Download and install dependency-check
+                    wget https://github.com/jeremylong/DependencyCheck/releases/download/v10.0.3/dependency-check-10.0.3-release.zip
+                    unzip dependency-check-10.0.3-release.zip
+                    export DEPENDENCY_CHECK_HOME=$(pwd)/dependency-check
+                    export PATH=$DEPENDENCY_CHECK_HOME/bin:$PATH
+                '''
             }
         }
-
 
         stage('Dependency Scanning') {
             parallel {
@@ -51,7 +56,6 @@ pipeline {
                 stage('OWASP Dependency Check') {
                     steps {
                         script {
-                            // Run dependency-check with additional arguments
                             def result = sh(script: '''
                                 dependency-check --scan './' 
                                 --out './' 
