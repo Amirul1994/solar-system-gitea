@@ -60,8 +60,8 @@ pipeline {
 
                                 // Define the specific log messages to ignore
                                 def suppressionMessages = [
-                                    "Suppression Rule had zero matches: SuppressionRule{packageUrl=PropertyType{value=^pkg:maven/io\\.etcd/jetcd-[a-z]*@.*\\$, regex=true, caseSensitive=false},cpe={PropertyType{value=cpe:/a:redhat:etcd, regex=false, caseSensitive=false},PropertyType{value=cpe:/a:etcd:etcd, regex=false, caseSensitive=false},}}",
-                                    "Suppression Rule had zero matches: SuppressionRule{packageUrl=PropertyType{value=^pkg:maven/io\\.etcd/jetcd-grpc@.*\\$, regex=true, caseSensitive=false},cpe={PropertyType{value=cpe:/a:grpc:grpc, regex=false, caseSensitive=false},}}"
+                                    "Suppression Rule had zero matches: SuppressionRule{packageUrl=PropertyType{value=^pkg:maven/io\\.etcd/jetcd-[a-z]*@.*\${5}, regex=true, caseSensitive=false},cpe={PropertyType{value=cpe:/a:redhat:etcd, regex=false, caseSensitive=false},PropertyType{value=cpe:/a:etcd:etcd, regex=false, caseSensitive=false},}}",
+                                    "Suppression Rule had zero matches: SuppressionRule{packageUrl=PropertyType{value=^pkg:maven/io\\.etcd/jetcd-grpc@.*\${5}, regex=true, caseSensitive=false},cpe={PropertyType{value=cpe:/a:grpc:grpc, regex=false, caseSensitive=false},}}"
                                 ]
 
                                 // Check if the output contains any of the suppression messages
