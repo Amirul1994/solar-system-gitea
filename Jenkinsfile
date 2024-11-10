@@ -35,9 +35,10 @@ pipeline {
                 sh '''
                     # Download and install dependency-check
                     wget https://github.com/jeremylong/DependencyCheck/releases/download/v10.0.3/dependency-check-10.0.3-release.zip
-                    unzip dependency-check-10.0.3-release.zip
+                    unzip -o dependency-check-10.0.3-release.zip
                     export DEPENDENCY_CHECK_HOME=$(pwd)/dependency-check
                     export PATH=$DEPENDENCY_CHECK_HOME/bin:$PATH
+                    chmod +x $DEPENDENCY_CHECK_HOME/bin/dependency-check.sh
                 '''
             }
         }
