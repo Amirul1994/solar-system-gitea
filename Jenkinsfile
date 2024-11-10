@@ -7,6 +7,7 @@ pipeline {
     
     environment {
         USER = 'amirul'
+        MONGO_URI = "mongodb+srv://supercluster.d83jj.mongodb.net/superData"
     }
 
     stages {
@@ -66,7 +67,11 @@ pipeline {
 
         stage('Unit Testing') {
             steps {
-                sh 'npm test'
+                withCredentials([usernamePassword(credentialsId: 'mongo-db-credentials', passwordVariable: 'MONGO_PASSWORD', usernameVariable: 'MONGO_USERNAME')]) {
+                      sh 'npm test'
+                }
+                
+                junit allowEmptyResults: true, stdioRetention: '', testResults: 'test-results.xml'
             }
         }
     }
