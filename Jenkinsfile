@@ -60,11 +60,13 @@ pipeline {
                     }
                 } 
 
-                stage('Unit Testing') {
-                    steps {
-                        sh 'npm test'
-                    }
-                }
+                
+            }
+        }
+
+        stage('Unit Testing') {
+            steps {
+                sh 'npm test'
             }
         }
     }
