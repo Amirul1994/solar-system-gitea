@@ -51,7 +51,8 @@ pipeline {
                                                     --format 'ALL' 
                                                     --prettyPrint 
                                                     --disableYarnAudit 
-                                                    --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' ''', 
+                                                    --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
+                                                    --disableHostedSuppressions ''', 
                                              nvdCredentialsId: 'dependency-check-nvd-api-key', 
                                             odcInstallation: 'OWASP-DepCheck-11'
                         }
