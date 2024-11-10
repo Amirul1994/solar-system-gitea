@@ -4,7 +4,7 @@ pipeline {
     tools {
         nodejs 'nodejs-22-6-0'
     }
-
+    
     environment {
         USER = 'amirul'
     }
@@ -43,23 +43,15 @@ pipeline {
 
                 stage('OWASP Dependency Check') {
                     steps {
-                        script {
-                            def result = sh(script: '''
-                                dependency-check --scan './' 
-                                --out './' 
-                                --format 'ALL'
-                                --prettyPrint 
-                                --disableYarnAudit 
-                                --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
-                                --disableHostedSuppressions ''
-                            ''', returnStatus: true)
-
-                            if (result != 0) {
-                                echo "OWASP Dependency Check failed but continuing the pipeline."
-                            } else {
-                                echo "OWASP Dependency Check passed successfully."
-                            }
-                        }
+                        dependencyCheck additionalArguments: ''' dependency-check --scan './' 
+                                                                --out './' 
+                                                                --format 'ALL'
+                                                                --prettyPrint 
+                                                                --disableYarnAudit 
+                                                                --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
+                                                                --disableHostedSuppressions ''', 
+                                     nvdCredentialsId: 'dependency-check-nvd-api-key', 
+                                     odcInstallation: 'OWASP-DepCheck-11'
                     }
                 }
             }
