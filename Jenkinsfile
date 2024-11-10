@@ -43,14 +43,22 @@ pipeline {
 
                 stage('OWASP Dependency Check') {
                     steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                            dependencyCheck additionalArguments: ''' dependency-check --scan './' 
-                                                                    --out './' 
-                                                                    --format 'ALL'
-                                                                    --prettyPrint 
-                                                                    --disableYarnAudit ''', 
-                                             nvdCredentialsId: 'dependency-check-nvd-api-key', 
-                                             odcInstallation: 'OWASP-DepCheck-11'
+                        script {
+                            def result = sh(script: '''
+                                dependency-check --scan './' 
+                                --out './' 
+                                --format 'ALL'
+                                --prettyPrint 
+                                --disableYarnAudit 
+                                --suppression '/var/lib/jenkins/workspace/ud-jenkins_feature_enabling-cicd/suppression.xml' 
+                                --disableHostedSuppressions ''
+                            ''', returnStatus: true)
+
+                            if (result != 0) {
+                                echo "OWASP Dependency Check failed with exit code ${result} but continuing the pipeline."
+                            } else {
+                                echo "OWASP Dependency Check passed successfully."
+                            }
                         }
                     }
                 }
