@@ -30,7 +30,7 @@ pipeline {
             }
         }
 
-        /*stage('Dependency Scanning') {
+        stage('Dependency Scanning') {
             parallel {
                 stage('npm dependency audit') {
                     steps {
@@ -54,6 +54,6 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
     }
 }
