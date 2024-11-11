@@ -16,8 +16,6 @@ pipeline {
         disableConcurrentBuilds abortPrevious: true
     }
 
-
-
     stages {
         stage('vm node version') {
             steps {
@@ -55,24 +53,21 @@ pipeline {
 
                 stage('OWASP Dependency Check') {
                     steps {
-                        dependencyCheck additionalArguments: ''' dependency-check --scan './' 
+                        dependencyCheck additionalArguments: '''--scan './' 
                                                                 --out './' 
                                                                 --format 'ALL'
                                                                 --prettyPrint 
-                                                                --disableYarnAudit 
-                                                                ''', 
+                                                                --disableYarnAudit''', 
                                      nvdCredentialsId: 'dependency-check-nvd-api-key', 
                                      odcInstallation: 'OWASP-DepCheck-11'
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                         
-                        junit allowEmptyResults: true, stdioRetention: '', testResults: 'dependency-check-junit.xml'
+                        junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
 
-                        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                        publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: ''])
                     }
                 } 
-
-                
             }
         }
 
@@ -83,21 +78,18 @@ pipeline {
                 sh 'echo Password - $MONGO_DB_CREDS_PSW'        
                 sh 'npm test'
                 
-                junit allowEmptyResults: true, stdioRetention: '', testResults: 'test-results.xml'
+                junit allowEmptyResults: true, testResults: 'test-results.xml'
             }
         }
 
         stage('Code Coverage') {
             steps {
-                
-                      
-                      catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-                           sh 'npm run coverage'
-                      }
+                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+                    sh 'npm run coverage'
                 }
                 
-                publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: ''])
             }
         }
     }
-
+}
