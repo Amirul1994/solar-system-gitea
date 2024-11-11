@@ -11,7 +11,7 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
-        SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610';
+        SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
     }
 
     options {
@@ -91,31 +91,30 @@ pipeline {
 
         stage('SAST - SonarQube') {
             steps {
-                sh 'echo $SONAR_SCANNER_HOME'
+                timeout(time: 60, unit: 'SECONDS') {
+                    withSonarQubeEnv('soanr-qube-server') {
+                        sh 'echo $SONAR_SCANNER_HOME'
                 
-                sh '''
-                    $SONAR_SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=Kodekloud-System-Project \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info \
-                        -Dsonar.token=sqp_dadd7429830aa386397ac0404db8f41338ed4b4a
-                '''
+                        sh '''
+                            $SONAR_SCANNER_HOME/bin/sonar-scanner \
+                                 -Dsonar.projectKey=Kodekloud-System-Project \
+                                 -Dsonar.sources=. \
+                                 -Dsonar.host.url=http://localhost:9000 \
+                                 -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
+                        '''
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
 
     post {
-       always {
-          
-           junit allowEmptyResults: true, testResults: 'test-results.xml'
-
-           junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
-
-           publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: ''])
-
-           publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: ''])
-       }
+        always {
+            junit allowEmptyResults: true, testResults: 'test-results.xml'
+            junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: ''])
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: ''])
+        }
     }
-
 }
