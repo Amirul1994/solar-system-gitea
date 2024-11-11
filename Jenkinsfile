@@ -112,13 +112,13 @@ pipeline {
         stage('Trivy Vulnerability Scanner') {
             steps {
                 sh ''' 
-                    trivy image amirul1994/solar-system:$GIT_COMMIT \
+                    sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
                         --severity LOW,MEDIUM \
                         --exit-code 0 \
                         --quiet \
                         --format json -o trivy-image-MEDIUM-results.json
 
-                    trivy image amirul1994/solar-system:$GIT_COMMIT \
+                    sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
                         --severity HIGH,CRITICAL \
                         --exit-code 1 \
                         --quiet \
@@ -129,13 +129,13 @@ pipeline {
             post {
                 always {
                     sh '''
-                        trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
+                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
                         
-                        trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
+                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
                         
-                        trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
+                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
                         
-                        trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
+                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
                     '''
                 }
             }
