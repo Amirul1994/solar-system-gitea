@@ -89,6 +89,23 @@ pipeline {
             }
         }
 
+        stage('Send Webhook to SonarQube') {
+            steps {
+                script {
+                    def payload = '''{
+                        "projectKey": "Kodekloud-System-Project",
+                        "status": "OK",
+                        "analysisId": "XYZ123"
+                    }'''
+
+                    // Send the POST request with JSON payload
+                    httpRequest acceptType: 'APPLICATION_JSON', 
+                                contentType: 'APPLICATION_JSON', 
+                                httpMode: 'POST', 
+                                url: 'http://192.168.0.106:8080/sonarqube-webhook/', 
+                                requestBody: payload
+                }
+
         stage('SAST - SonarQube') {
             steps {
                 timeout(time: 60, unit: 'SECONDS') {
