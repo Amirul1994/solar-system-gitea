@@ -65,7 +65,6 @@ pipeline {
                                      odcInstallation: 'OWASP-DepCheck-11'
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
-                        
                     }
                 } 
             }
@@ -77,7 +76,7 @@ pipeline {
                 sh 'echo Username - $MONGO_DB_CREDS_USR'
                 sh 'echo Password - $MONGO_DB_CREDS_PSW'        
                 sh 'npm test'
-                }
+            }
         }
 
         stage('Code Coverage') {
@@ -85,10 +84,10 @@ pipeline {
                 catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
                     sh 'npm run coverage'
                 }
-                
             }
         }
 
+        // This stage is moved before SonarQube analysis
         stage('Send Webhook to SonarQube') {
             steps {
                 script {
@@ -105,6 +104,8 @@ pipeline {
                                 url: 'http://192.168.0.106:8080/sonarqube-webhook/', 
                                 requestBody: payload
                 }
+            }
+        }
 
         stage('SAST - SonarQube') {
             steps {
