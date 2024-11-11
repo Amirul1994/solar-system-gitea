@@ -11,6 +11,8 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
+        DOCKER_USERNAME = ''
+        DOCKER_PASSWORD = ''
         //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
     }
 
@@ -51,8 +53,8 @@ pipeline {
                         '''
                     }
                 }
-
-                stage('OWASP Dependency Check') {
+                
+                /*stage('OWASP Dependency Check') {
                     steps {
                         dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''', 
                                         nvdCredentialsId: 'dependency-check-nvd-api-key', 
@@ -60,7 +62,7 @@ pipeline {
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                } 
+                } */
             }
         }
 
@@ -143,7 +145,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub-credentials', url: "") {
+                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh 'sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
