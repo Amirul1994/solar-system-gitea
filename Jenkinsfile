@@ -98,6 +98,7 @@ pipeline {
                         -Dsonar.projectKey=Kodekloud-System-Project \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info \
                         -Dsonar.token=sqp_dadd7429830aa386397ac0404db8f41338ed4b4a
                 '''
             }
