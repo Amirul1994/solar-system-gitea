@@ -111,7 +111,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'printenv'
-                sh 'docker build -t amirul/solar-system:$GIT_COMMIT .'
+                sh 'sudo docker build -t amirul/solar-system:$GIT_COMMIT .'
             }
         }
     }
