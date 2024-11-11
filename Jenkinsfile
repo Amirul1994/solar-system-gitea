@@ -8,6 +8,7 @@ pipeline {
     environment {
         USER = 'amirul'
         MONGO_URI = "mongodb+srv://supercluster.d83jj.mongodb.net/superData"
+        MONGO_DB_CREDS = credentials('mongo-db-credentials')
     }
 
     options {
@@ -77,9 +78,10 @@ pipeline {
 
         stage('Unit Testing') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'mongo-db-credentials', passwordVariable: 'MONGO_PASSWORD', usernameVariable: 'MONGO_USERNAME')]) {
-                      sh 'npm test'
-                }
+                sh 'echo Colon-Seperated - $MONGO_DB_CREDS'       
+                sh 'echo Username - $MONGO_DB_CREDS_USR'
+                sh 'echo Password - $MONGO_DB_CREDS_PSW'        
+                sh 'npm test'
                 
                 junit allowEmptyResults: true, stdioRetention: '', testResults: 'test-results.xml'
             }
@@ -87,7 +89,7 @@ pipeline {
 
         stage('Code Coverage') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'mongo-db-credentials', passwordVariable: 'MONGO_PASSWORD', usernameVariable: 'MONGO_USERNAME')]) {
+                
                       
                       catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
                            sh 'npm run coverage'
