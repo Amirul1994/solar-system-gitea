@@ -11,6 +11,7 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
+        SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610';
     }
 
     options {
@@ -85,6 +86,20 @@ pipeline {
                     sh 'npm run coverage'
                 }
                 
+            }
+        }
+
+        stage('SAST - SonarQube') {
+            steps {
+                sh 'echo $SONAR_SCANNER_HOME'
+                
+                sh '''
+                    $SONAR_SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=Kodekloud-System-Project \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.token=sqp_dadd7429830aa386397ac0404db8f41338ed4b4a
+                '''
             }
         }
     }
