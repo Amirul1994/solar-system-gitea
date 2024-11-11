@@ -38,7 +38,7 @@ pipeline {
             options { timestamps() }
             
             steps {
-                sh 'sleep 100s'
+                //sh 'sleep 100s'
                 sh 'npm install --no-audit'
             }
         }
