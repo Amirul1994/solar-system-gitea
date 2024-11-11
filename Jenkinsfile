@@ -11,8 +11,8 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
-        DOCKER_USERNAME = ''
-        DOCKER_PASSWORD = ''
+        //DOCKER_USERNAME = ''
+        //DOCKER_PASSWORD = ''
         //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
     }
 
@@ -62,7 +62,7 @@ pipeline {
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                } */
+                }*/
             }
         }
 
@@ -145,11 +145,10 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh 'sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
+                // Use withDockerRegistry to authenticate and push the Docker image
+                withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
-            }
         }
     }
 
