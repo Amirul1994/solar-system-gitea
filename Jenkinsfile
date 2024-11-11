@@ -22,7 +22,7 @@ pipeline {
     }
 
     stages {
-        stage('vm node version') {
+        stage('VM Node Version') {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
                     sh '''
@@ -45,7 +45,7 @@ pipeline {
 
         stage('Dependency Scanning') {
             parallel {
-                stage('npm dependency audit') {
+                stage('NPM Dependency Audit') {
                     steps {
                         sh '''
                             npm audit --audit-level=critical
@@ -68,7 +68,7 @@ pipeline {
 
         stage('Unit Testing') {
             steps {
-                sh 'echo Colon-Seperated - $MONGO_DB_CREDS'       
+                sh 'echo Colon-Separated - $MONGO_DB_CREDS'       
                 sh 'echo Username - $MONGO_DB_CREDS_USR'
                 sh 'echo Password - $MONGO_DB_CREDS_PSW'        
                 sh 'npm test'
@@ -145,10 +145,11 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                // Use withDockerRegistry to authenticate and push the Docker image
+                
                 withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
+            }
         }
     }
 
