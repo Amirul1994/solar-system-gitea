@@ -11,7 +11,7 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
-        SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
+        //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
     }
 
     options {
@@ -87,26 +87,7 @@ pipeline {
             }
         }
 
-        // This stage is moved before SonarQube analysis
-        stage('Send Webhook to SonarQube') {
-            steps {
-                script {
-                    def payload = '''{
-                        "projectKey": "Kodekloud-System-Project",
-                        "status": "OK",
-                        "analysisId": "XYZ123"
-                    }'''
-
-                    // Send the POST request with JSON payload
-                    httpRequest acceptType: 'APPLICATION_JSON', 
-                                contentType: 'APPLICATION_JSON', 
-                                httpMode: 'POST', 
-                                url: 'http://192.168.0.106:8080/sonarqube-webhook/', 
-                                requestBody: payload
-                }
-            }
-        }
-
+       /*
         stage('SAST - SonarQube') {
             steps {
                 timeout(time: 60, unit: 'SECONDS') {
@@ -124,6 +105,13 @@ pipeline {
                     }
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }*/ 
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'printenv'
+                sh 'docker build -t amirul/solar-system:$GIT_COMMIT .'
             }
         }
     }
