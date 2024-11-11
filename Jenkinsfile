@@ -92,7 +92,7 @@ pipeline {
         stage('SAST - SonarQube') {
             steps {
                 timeout(time: 60, unit: 'SECONDS') {
-                    withSonarQubeEnv('soanr-qube-server') {
+                    withSonarQubeEnv('sonar-qube-server') {
                         sh 'echo $SONAR_SCANNER_HOME'
                 
                         sh '''
