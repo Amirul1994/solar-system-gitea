@@ -174,7 +174,7 @@ pipeline {
                 script {
                     sshagent(['aws-dev-deploy-ec2-instance']) {
                         sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP "
+                            ssh -o StrictHostKeyChecking=no ubuntu@${env.EC2_IP} "
                                 if sudo docker ps -a | grep -q 'solar-system'; then
                                     echo 'Container found. Stopping...'
                                     sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
