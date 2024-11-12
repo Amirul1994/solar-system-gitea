@@ -163,7 +163,7 @@ pipeline {
                         --filters "Name=tag:Name,Values=dev-deploy" "Name=instance-state-name,Values=running" \
                         --query "Reservations[].Instances[].PublicIpAddress" \
                         --output text
-                    ''', returnStdout: true).trim()
+                    '''
 
                 // Store the IP in the environment variable if found
                 env.EC2_IP = output ? output : "null"
