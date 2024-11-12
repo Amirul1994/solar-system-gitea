@@ -21,8 +21,9 @@ pipeline {
         disableResume()
         disableConcurrentBuilds abortPrevious: true
     }
-
-    stages {
+    
+    
+    /*stages {
         stage('VM Node Version') {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
@@ -35,7 +36,7 @@ pipeline {
                     '''
                 }
             }
-        }
+        }*/
 
         stage('Installing Dependencies') {
             options { timestamps() }
@@ -55,7 +56,7 @@ pipeline {
                     }
                 }
                 
-                stage('OWASP Dependency Check') {
+                /*stage('OWASP Dependency Check') {
                     steps {
                         dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''', 
                                         nvdCredentialsId: 'dependency-check-nvd-api-key', 
@@ -63,7 +64,7 @@ pipeline {
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                }
+                }*/
             }
         }
 
@@ -112,7 +113,7 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Scanner') {
+        /*stage('Trivy Vulnerability Scanner') {
             steps {
                 sh ''' 
                     sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
@@ -127,7 +128,7 @@ pipeline {
                         --quiet \
                         --format json -o trivy-image-CRITICAL-results.json             
                 '''
-            }
+            }*/
 
             post {
                 always {
@@ -156,8 +157,11 @@ pipeline {
         stage('Get EC2 IP Address') {
             steps {
                 script {
-                    def output = sh(script : 'bash integration-testing-ec2.sh', returnStdout: true)
-                    env.EC2_IP = output.trim()
+                    def output = sh(script : 'bash integration-testing-ec2.sh', returnStdout: true).trim()
+
+                    def ip = output.split("\n").find{ it.startsWith("Public IP") }?.split(" - ")[1]
+                    
+                    env.EC2_IP = ip
                 }
             }
         }

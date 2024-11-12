@@ -11,7 +11,7 @@ IP=$(echo "$Data" | jq -r '.Reservations[].Instances[] | select(.Tags[]?.Value =
 echo "URL Data - $URL" 
 echo "Public IP - $IP"
 
-if [[ -n "$URL" && -n "$IP" ]]; then
+if [ -n "$URL" ] && [ -n "$IP" ]; then
     http_code=$(curl -s -o /dev/null -w "%{http_code}" http://$URL:3000/live)
         echo "http_code - "$http_code
     planet_data=$(curl -s -XPOST http://$URL:3000/planet -H "Content-Type: application/json" -d '{"id": "3"}')
@@ -19,7 +19,7 @@ if [[ -n "$URL" && -n "$IP" ]]; then
     planet_name=$(echo $planet_data | jq .name -r)
         echo "planet_name - "$planet_name 
 
-    if [[ "$http_code" -eq 200 && "$planet_name" -eq "Earth" ]];
+    if [ "$http_code" -eq 200 ] && [ "$planet_name" = "Earth" ];
         then 
             echo "HTTP Status  Code and Planet Name Tests Passed"
         else
