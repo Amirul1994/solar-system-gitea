@@ -166,9 +166,17 @@ pipeline {
 
                 // Check if the public IP was successfully retrieved
                 if (publicIp && publicIp != "Could not retrieve public IP address. Please verify the instance name and state.") {
-                    // Set the retrieved IP to an environment variable
-                    publicIp = env.EC2_IP
-                    echo "Public IP Address retrieved: ${env.EC2_IP}"
+                    // Output the retrieved public IP
+                    echo "Public IP Address retrieved: ${publicIp}"
+
+                    // Now you can use the public IP directly for SSH connection
+                    // Assuming you have an AWS EC2 SSH private key stored in credentials
+                    sshagent(['aws-dev-deploy-ec2-instance']) {
+                        sh """
+                            echo 'Connecting to EC2 instance at ${publicIp}...'
+                            ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} 'echo "SSH Connection Successful!"'
+                        """
+                    }
                 } else {
                     // If no IP was retrieved or there was an error, stop the build with an error message
                     error "Failed to retrieve EC2 public IP address."
