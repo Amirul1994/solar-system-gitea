@@ -105,12 +105,12 @@ pipeline {
             }
         }*/
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'printenv'
-                sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
-            }
-        }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         sh 'printenv'
+        //         sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
+        //     }
+        // }
 
         /*stage('Trivy Vulnerability Scanner') {
             steps {
@@ -144,13 +144,13 @@ pipeline {
             }
         }*/
 
-        stage('Push Docker Image') {
-            steps {
-                withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
-                    sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
+        //             sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
+        //         }
+        //     }
+        // }
 
        
 
