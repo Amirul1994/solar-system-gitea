@@ -158,7 +158,9 @@ pipeline {
         withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
             script {
                 // Run the script using bash and capture the output (public IP)
-                def publicIp = sh(script: 'bash ./get_public_ip_address.sh', returnStdout: true).trim()
+                def publicIp = sh(script: '''
+                    bash get_public_ip_address.sh
+                ''', returnStdout: true).trim()
                 
                 // Set the IP to env variable within the script block
                 if (publicIp) {
@@ -171,6 +173,7 @@ pipeline {
         }
     }
 }
+
 
 
         /*stage('Deploy - AWS EC2') {
