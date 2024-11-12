@@ -106,12 +106,12 @@ pipeline {
             }
         }*/
 
-        stage('Build Docker Image') {
+        /*stage('Build Docker Image') {
             steps {
                 sh 'printenv'
                 sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
             }
-        }
+        }*/
 
         /*stage('Trivy Vulnerability Scanner') {
             steps {
@@ -145,25 +145,47 @@ pipeline {
             }
         }*/
 
-        stage('Push Docker Image') {
+        /*stage('Push Docker Image') {
             steps {
                 withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
             }
-        }
+        }*/
 
        stage('Get EC2 IP Address') {
     steps {
-       withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-          script {
-            def output = sh(script: 'aws ec2 describe-instances --filters "Name=tag:Name,Values=dev-deploy" --query "Reservations[*].Instances[*].PublicIpAddress" --output text')
-            env.EC2_IP = output
-            echo "Retrieved EC2 Public IP: ${env.EC2_IP}"
-          } 
-       }
+        withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+            script {
+                // Get EC2 public IP address based on the instance name
+                def output = sh(script: '''
+                    aws ec2 describe-instances \
+                        --filters "Name=tag:Name,Values=dev-deploy" "Name=instance-state-name,Values=running" \
+                        --query "Reservations[*].Instances[*].PublicIpAddress" \
+                        --output text
+                    ''', returnStdout: true).trim()
+
+                // Store the IP in the environment variable if found
+                env.EC2_IP = output ? output : "null"
+                
+                // Additional debugging output
+                def debugOutput = sh(script: '''
+                    aws ec2 describe-instances \
+                        --filters "Name=tag:Name,Values=dev-deploy" \
+                        --output json
+                    ''', returnStdout: true)
+                
+                echo "Debugging Output: ${debugOutput}"
+                echo "Retrieved EC2 Public IP: ${env.EC2_IP}"
+                
+                if (env.EC2_IP == "null" || !env.EC2_IP) {
+                    error "Could not retrieve EC2 public IP address. Check instance name and state."
+                }
+            }
+        }
     }
 }
+
 
 
 
