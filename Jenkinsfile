@@ -155,11 +155,13 @@ pipeline {
 
         stage('Get EC2 IP Address') {
             steps {
-                script {
+               withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                  script {
                     def output = sh(script: 'bash integration-testing-ec2.sh', returnStdout: true).trim()
                     def ip = output.split("\n").find { it.startsWith("Public IP") }?.split(" - ")[1]
                     env.EC2_IP = ip
-                }
+                } 
+              }
             }
         }
 
