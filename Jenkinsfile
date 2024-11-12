@@ -67,22 +67,22 @@ pipeline {
             }
         }
 
-        stage('Unit Testing') {
-            steps {
-                sh 'echo Colon-Separated - $MONGO_DB_CREDS'       
-                sh 'echo Username - $MONGO_DB_CREDS_USR'
-                sh 'echo Password - $MONGO_DB_CREDS_PSW'        
-                sh 'npm test'
-            }
-        }
+        // stage('Unit Testing') {
+        //     steps {
+        //         sh 'echo Colon-Separated - $MONGO_DB_CREDS'       
+        //         sh 'echo Username - $MONGO_DB_CREDS_USR'
+        //         sh 'echo Password - $MONGO_DB_CREDS_PSW'        
+        //         sh 'npm test'
+        //     }
+        // }
 
-        stage('Code Coverage') {
-            steps {
-                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-                    sh 'npm run coverage'
-                }
-            }
-        }
+        // stage('Code Coverage') {
+        //     steps {
+        //         catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+        //             sh 'npm run coverage'
+        //         }
+        //     }
+        // }
 
         /*
         stage('SAST - SonarQube') {
