@@ -161,18 +161,21 @@ pipeline {
                 def publicIp = sh(script: '''
                     bash get_public_ip_address.sh
                 ''', returnStdout: true).trim()
-                
-                // Set the IP to env variable within the script block
-                if (publicIp) {
+
+                // Check if the public IP was successfully retrieved
+                if (publicIp && publicIp != "Could not retrieve public IP address. Please verify the instance name and state.") {
+                    // Set the retrieved IP to an environment variable
                     env.EC2_IP = publicIp
                     echo "Public IP Address retrieved: ${env.EC2_IP}"
                 } else {
+                    // If no IP was retrieved or there was an error, stop the build with an error message
                     error "Failed to retrieve EC2 public IP address."
                 }
             }
         }
     }
 }
+
 
 
 
