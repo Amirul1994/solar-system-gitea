@@ -159,7 +159,7 @@ pipeline {
                     script {
                         // Run the command to get the public IP address
                         def publicIp = sh(script: 'bash get_public_ip_address.sh', returnStdout: true).trim()
-                        
+                        echo publicIp
                         // Set the IP as an environment variable for subsequent stages
                         env.EC2_IP = publicIp
                         echo "Public IP Address retrieved: ${env.EC2_IP}"
