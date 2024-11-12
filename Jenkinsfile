@@ -162,6 +162,8 @@ pipeline {
                     bash get_public_ip_address.sh
                 ''', returnStdout: true).trim()
 
+                echo "Public IP Address: ${publicIp}"
+
                 // Check if the public IP was successfully retrieved
                 if (publicIp && publicIp != "Could not retrieve public IP address. Please verify the instance name and state.") {
                     // Set the retrieved IP to an environment variable
