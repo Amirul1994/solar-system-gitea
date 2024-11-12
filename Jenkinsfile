@@ -4,7 +4,7 @@ pipeline {
     tools {
         nodejs 'nodejs-22-6-0'
     }
-    
+
     environment {
         USER = 'amirul'
         MONGO_URI = "mongodb+srv://supercluster.d83jj.mongodb.net/superData"
@@ -21,9 +21,9 @@ pipeline {
         disableResume()
         disableConcurrentBuilds abortPrevious: true
     }
-    
-    
+
     stages {
+
         /*stage('VM Node Version') {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
@@ -104,7 +104,7 @@ pipeline {
                     waitForQualityGate abortPipeline: true
                 }
             }
-        }*/ 
+        }*/
 
         stage('Build Docker Image') {
             steps {
@@ -128,7 +128,7 @@ pipeline {
                         --quiet \
                         --format json -o trivy-image-CRITICAL-results.json             
                 '''
-            }*/
+            }
 
             post {
                 always {
@@ -143,50 +143,47 @@ pipeline {
                     '''
                 }
             }
-        } 
+        }*/
 
         stage('Push Docker Image') {
             steps {
-                
                 withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
             }
         }
-        
+
         stage('Get EC2 IP Address') {
             steps {
                 script {
-                    def output = sh(script : 'bash integration-testing-ec2.sh', returnStdout: true).trim()
-
-                    def ip = output.split("\n").find{ it.startsWith("Public IP") }?.split(" - ")[1]
-                    
+                    def output = sh(script: 'bash integration-testing-ec2.sh', returnStdout: true).trim()
+                    def ip = output.split("\n").find { it.startsWith("Public IP") }?.split(" - ")[1]
                     env.EC2_IP = ip
                 }
             }
         }
-        
+
         stage('Deploy - AWS EC2') {
             when {
                 branch 'feature/*'
             }
 
-            steps { 
-                script {    
+            steps {
+                script {
                     sshagent(['aws-dev-deploy-ec2-instance']) {
                         sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@EC2_IP "
-                                if sudo docker ps -a | grep -q "solar-system"; then
-                                    echo "Container found. Stopping..."
-                                        sudo docker stop "solar-system" && sudo docker rm "solar-system"
-                                    echo "Container stopped and removed."
+                            ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP "
+                                if sudo docker ps -a | grep -q 'solar-system'; then
+                                    echo 'Container found. Stopping...'
+                                    sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+                                    echo 'Container stopped and removed.'
                                 fi
-                                    sudo docker run --name solar-system \
-                                        -e MONGO_URI=$MONGO_URI \
-                                        -e MONGO_USERNAME=$MONGO_USERNAME \
-                                        -e MONGO_PASSWORD=$MONGO_PASSWORD \
-                                        -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-                            "    
+                                sudo docker run --name solar-system \
+                                    -e MONGO_URI=$MONGO_URI \
+                                    -e MONGO_USERNAME=$MONGO_USERNAME \
+                                    -e MONGO_PASSWORD=$MONGO_PASSWORD \
+                                    -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+                            "
                         '''
                     }
                 }
@@ -200,13 +197,11 @@ pipeline {
 
             steps {
                 sh 'printenv | grep -i branch'
-                
                 withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
                     sh '''
-                       bash integration-testing-ec2.sh
+                        bash integration-testing-ec2.sh
                     '''
                 }
-               
             }
         }
     }
@@ -214,20 +209,13 @@ pipeline {
     post {
         always {
             junit allowEmptyResults: true, testResults: 'test-results.xml'
-            
             junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
-
             junit allowEmptyResults: true, testResults: 'trivy-image-CRITICAL-results.xml'
-            
             junit allowEmptyResults: true, testResults: 'trivy-image-MEDIUM-results.xml'
 
-
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
-
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-MEDIUM-results.html', reportName: 'Trivy Image Medium Vul Report', reportTitles: '', useWrapperFileDirectly: true])
-
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: ''])
-            
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: ''])
         }
     }
