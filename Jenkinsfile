@@ -157,7 +157,7 @@ pipeline {
     steps {
        withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
           script {
-            def output = sh(script: 'aws ec2 describe-instances --filters "Name=tag:Name,Values=dev-deploy" --query "Reservations[*].Instances[*].PublicIpAddress" --output text', returnStdout: true).trim()
+            def output = sh(script: 'aws ec2 describe-instances --filters "Name=tag:Name,Values=dev-deploy" --query "Reservations[*].Instances[*].PublicIpAddress" --output text')
             env.EC2_IP = output
             echo "Retrieved EC2 Public IP: ${env.EC2_IP}"
           } 
