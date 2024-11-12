@@ -161,7 +161,7 @@ pipeline {
 
     steps {
         script {
-            withAWS(credentials: 'aws-dev-deploy-ec2-instance', region: 'us-east-1') {
+            withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
                 sshagent(['aws-dev-deploy-ec2-instance']) {
                     withCredentials([
                         string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
