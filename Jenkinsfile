@@ -11,6 +11,7 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
+        EC2_IP = ""
         //DOCKER_USERNAME = ''
         //DOCKER_PASSWORD = ''
         //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
@@ -151,7 +152,16 @@ pipeline {
                 }
             }
         }
-
+        
+        stage('Get EC2 IP Address') {
+            steps {
+                script {
+                    def output = sh(script : 'bash integration-testing-ec2.sh', returnStdout: true)
+                    env.EC2_IP = output.trim()
+                }
+            }
+        }
+        
         stage('Deploy - AWS EC2') {
             when {
                 branch 'feature/*'
@@ -161,7 +171,7 @@ pipeline {
                 script {    
                     sshagent(['aws-dev-deploy-ec2-instance']) {
                         sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@3.92.162.13 "
+                            ssh -o StrictHostKeyChecking=no ubuntu@EC2_IP "
                                 if sudo docker ps -a | grep -q "solar-system"; then
                                     echo "Container found. Stopping..."
                                         sudo docker stop "solar-system" && sudo docker rm "solar-system"

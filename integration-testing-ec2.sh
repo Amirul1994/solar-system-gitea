@@ -6,9 +6,12 @@ Data=$(aws ec2 describe-instances)
 echo "Data - $Data"
 
 URL=$(echo "$Data" | jq -r '.Reservations[].Instances[] | select(.Tags[]?.Value == "dev-deploy") | .PublicDnsName')
-echo "URL Data - $URL"
+IP=$(echo "$Data" | jq -r '.Reservations[].Instances[] | select(.Tags[]?.Value == "dev-deploy") | .PublicIpAddress')
 
-if [[ "$URL" != '' ]]; then
+echo "URL Data - $URL" 
+echo "Public IP - $IP"
+
+if [[ -n "$URL" && -n "$IP" ]]; then
     http_code=$(curl -s -o /dev/null -w "%{http_code}" http://$URL:3000/live)
         echo "http_code - "$http_code
     planet_data=$(curl -s -XPOST http://$URL:3000/planet -H "Content-Type: application/json" -d '{"id": "3"}')
