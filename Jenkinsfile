@@ -154,16 +154,26 @@ pipeline {
         }
 
         stage('Get EC2 IP Address') {
-            steps {
-               withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                  script {
-                    def output = sh(script: 'bash integration-testing-ec2.sh', returnStdout: true).trim()
-                    def ip = output.split("\n").find { it.startsWith("Public IP") }?.split(" - ")[1]
-                    env.EC2_IP = ip
-                } 
-              }
+    steps {
+        withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+            script {
+                // Capture the output of the script, and print it for debugging
+                def output = sh(script: 'bash integration-testing-ec2.sh', returnStdout: true).trim()
+                echo "Script Output: ${output}"
+
+                // Try to extract the IP address based on the expected format
+                def ipMatch = output =~ /Public IP - ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/
+                if (ipMatch) {
+                    env.EC2_IP = ipMatch[0][1]
+                    echo "Extracted IP Address: ${env.EC2_IP}"
+                } else {
+                    error("Failed to extract IP address from script output: ${output}")
+                }
             }
         }
+    }
+}
+
 
         stage('Deploy - AWS EC2') {
             when {
