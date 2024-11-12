@@ -154,43 +154,46 @@ pipeline {
 
        
 
-        stage('Deploy - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+       stage('Deploy - AWS EC2') {
+    when {
+        branch 'feature/*'
+    }
 
-            steps {
-                script {
-                    sshagent(['aws-dev-deploy-ec2-instance']) {
-                        withCredentials([
-                            string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
-                            string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
-                        ]) {
-                            // Run the script to fetch the public IP address
-                            def publicIp = sh(script: '''
-                                bash get_public_ip_address.sh
-                            ''', returnStdout: true).trim()
+    steps {
+        script {
+            withAWS(credentials: 'aws-dev-deploy-ec2-instance', region: 'us-east-1') {
+                sshagent(['aws-dev-deploy-ec2-instance']) {
+                    withCredentials([
+                        string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
+                        string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
+                    ]) {
+                        // Run the script to fetch the public IP address
+                        def publicIp = sh(script: '''
+                            bash get_public_ip_address.sh
+                        ''', returnStdout: true).trim()
 
-                            // SSH into the EC2 instance using the retrieved public IP
-                            sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
-                                    if sudo docker ps -a | grep -q 'solar-system'; then
-                                        echo 'Container found. Stopping...'
-                                        sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
-                                        echo 'Container stopped and removed.'
-                                    fi
-                                    sudo docker run --name solar-system \
-                                        -e MONGO_URI=${env.MONGO_URI} \
-                                        -e MONGO_USERNAME=${MONGO_USERNAME} \
-                                        -e MONGO_PASSWORD=${MONGO_PASSWORD} \
-                                        -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-                                "
-                            """
-                        }
+                        // SSH into the EC2 instance using the retrieved public IP
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
+                                if sudo docker ps -a | grep -q 'solar-system'; then
+                                    echo 'Container found. Stopping...'
+                                    sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+                                    echo 'Container stopped and removed.'
+                                fi
+                                sudo docker run --name solar-system \
+                                    -e MONGO_URI=${env.MONGO_URI} \
+                                    -e MONGO_USERNAME=${MONGO_USERNAME} \
+                                    -e MONGO_PASSWORD=${MONGO_PASSWORD} \
+                                    -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+                            "
+                        """
                     }
                 }
             }
         }
+    }
+}
+
 
         stage('Integration Testing - AWS EC2') {
             when {
