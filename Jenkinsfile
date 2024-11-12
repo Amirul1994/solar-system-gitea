@@ -23,8 +23,8 @@ pipeline {
     }
     
     
-    /*stages {
-        stage('VM Node Version') {
+    stages {
+        /*stage('VM Node Version') {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
                     sh '''
