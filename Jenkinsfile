@@ -153,7 +153,7 @@ pipeline {
             }
         }*/
 
-       stage('Get EC2 IP Address') {
+      stage('Get EC2 IP Address') {
     steps {
         withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
             script {
@@ -161,21 +161,14 @@ pipeline {
                 def output = sh(script: '''
                     aws ec2 describe-instances \
                         --filters "Name=tag:Name,Values=dev-deploy" "Name=instance-state-name,Values=running" \
-                        --query "Reservations[*].Instances[*].PublicIpAddress" \
+                        --query "Reservations[].Instances[].PublicIpAddress" \
                         --output text
                     ''', returnStdout: true).trim()
 
                 // Store the IP in the environment variable if found
                 env.EC2_IP = output ? output : "null"
                 
-                // Additional debugging output
-                def debugOutput = sh(script: '''
-                    aws ec2 describe-instances \
-                        --filters "Name=tag:Name,Values=dev-deploy" \
-                        --output json
-                    ''', returnStdout: true)
-                
-                echo "Debugging Output: ${debugOutput}"
+                // Print the IP address for verification
                 echo "Retrieved EC2 Public IP: ${env.EC2_IP}"
                 
                 if (env.EC2_IP == "null" || !env.EC2_IP) {
@@ -185,6 +178,7 @@ pipeline {
         }
     }
 }
+
 
 
 
