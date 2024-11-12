@@ -173,7 +173,7 @@ pipeline {
             steps {
                 script {
                     sshagent(['aws-dev-deploy-ec2-instance']) {
-                        sh '''
+                        sh """
                             ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP "
                                 if sudo docker ps -a | grep -q 'solar-system'; then
                                     echo 'Container found. Stopping...'
@@ -186,7 +186,7 @@ pipeline {
                                     -e MONGO_PASSWORD=$MONGO_PASSWORD \
                                     -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
                             "
-                        '''
+                        """
                     }
                 }
             }
