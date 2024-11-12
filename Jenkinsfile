@@ -152,20 +152,7 @@ pipeline {
             }
         }
 
-        stage('Get EC2 IP Address') {
-            steps {
-                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                    script {
-                        // Run the command to get the public IP address
-                        def publicIp = sh(script: 'bash get_public_ip_address.sh', returnStdout: true).trim()
-                        
-                        // Set the IP as an environment variable for subsequent stages
-                        env.EC2_IP = publicIp
-                        echo "Public IP Address retrieved: ${env.EC2_IP}"
-                    }
-                }
-            }
-        }
+       
 
         stage('Deploy - AWS EC2') {
             when {
