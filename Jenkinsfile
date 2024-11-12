@@ -155,16 +155,18 @@ pipeline {
 
         stage('Get EC2 IP Address') {
     steps {
-        script {
-            // Run the script and capture the output (public IP)
-            def publicIp = sh(script: './get_public_ip_address.sh', returnStdout: true).trim()
-            
-            // Set the IP to env variable within the script block
-            if (publicIp) {
-                env.EC2_IP = publicIp
-                echo "Public IP Address retrieved: ${env.EC2_IP}"
-            } else {
-                error "Failed to retrieve EC2 public IP address."
+        withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+            script {
+                // Run the script and capture the output (public IP)
+                def publicIp = sh(script: './get_public_ip_address.sh', returnStdout: true).trim()
+                
+                // Set the IP to env variable within the script block
+                if (publicIp) {
+                    env.EC2_IP = publicIp
+                    echo "Public IP Address retrieved: ${env.EC2_IP}"
+                } else {
+                    error "Failed to retrieve EC2 public IP address."
+                }
             }
         }
     }
