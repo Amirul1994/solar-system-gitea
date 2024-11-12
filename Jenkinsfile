@@ -54,7 +54,7 @@ pipeline {
                     }
                 }
                 
-                /*stage('OWASP Dependency Check') {
+                stage('OWASP Dependency Check') {
                     steps {
                         dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''', 
                                         nvdCredentialsId: 'dependency-check-nvd-api-key', 
@@ -62,7 +62,7 @@ pipeline {
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                }*/
+                }
             }
         }
 
@@ -148,6 +148,33 @@ pipeline {
                 
                 withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
+                }
+            }
+        }
+
+        stage('Deploy - AWS EC2') {
+            when {
+                branch 'feature/*'
+            }
+
+            steps { 
+                script {    
+                    sshagent(['aws-dev-deploy-ec2-instance']) {
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no ubuntu@3.88.59.23 "
+                                if sudo docker ps -a | grep -q "solar-system"; then
+                                    echo "Container found. Stopping..."
+                                        sudo docker stop "solar-system" && sudo docker rm "solar-system"
+                                    echo "Container stopped and removed."
+                                fi
+                                    sudo docker run --name solar-system \
+                                        -e MONGO_URI=$MONGO_URI \
+                                        -e MONGO_USERNAME=$MONGO_USERNAME \
+                                        -e MONGO_PASSWORD=$MONGO_PASSWORD \
+                                        -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+                            "    
+                        '''
+                    }
                 }
             }
         }
