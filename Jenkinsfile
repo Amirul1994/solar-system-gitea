@@ -11,7 +11,6 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
-        EC2_IP = ""
         //DOCKER_USERNAME = ''
         //DOCKER_PASSWORD = ''
         //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
@@ -24,7 +23,7 @@ pipeline {
 
     stages {
 
-        /*stage('VM Node Version') {
+        stage('VM Node Version') {
             steps {
                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
                     sh '''
@@ -36,25 +35,25 @@ pipeline {
                     '''
                 }
             }
-        }*/
+        }
 
-        /*stage('Installing Dependencies') {
+        stage('Installing Dependencies') {
             options { timestamps() }
             steps {
                 sh 'npm install --no-audit'
             }
-        }*/
+        }
 
-        /*stage('Dependency Scanning') {
+        stage('Dependency Scanning') {
             parallel {
-                /*stage('NPM Dependency Audit') {
+                stage('NPM Dependency Audit') {
                     steps {
                         sh '''
                             npm audit --audit-level=critical
                             echo $?
                         '''
                     }
-                }*/
+                }
                 
                 /*stage('OWASP Dependency Check') {
                     steps {
@@ -64,26 +63,26 @@ pipeline {
                         
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                }
+                }*/
             }
-        }*/
+        }
 
-        /*stage('Unit Testing') {
+        stage('Unit Testing') {
             steps {
                 sh 'echo Colon-Separated - $MONGO_DB_CREDS'       
                 sh 'echo Username - $MONGO_DB_CREDS_USR'
                 sh 'echo Password - $MONGO_DB_CREDS_PSW'        
                 sh 'npm test'
             }
-        }*/
+        }
 
-        /*stage('Code Coverage') {
+        stage('Code Coverage') {
             steps {
                 catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
                     sh 'npm run coverage'
                 }
             }
-        }*/
+        }
 
         /*
         stage('SAST - SonarQube') {
@@ -106,14 +105,14 @@ pipeline {
             }
         }*/
 
-        /*stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 sh 'printenv'
                 sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
             }
-        }*/
+        }
 
-        /*stage('Trivy Vulnerability Scanner') {
+        stage('Trivy Vulnerability Scanner') {
             steps {
                 sh ''' 
                     sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
@@ -143,53 +142,32 @@ pipeline {
                     '''
                 }
             }
-        }*/
+        }
 
-        /*stage('Push Docker Image') {
+        stage('Push Docker Image') {
             steps {
                 withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
             }
-        }*/
+        }
 
-       stage('Get EC2 IP Address') {
-    steps {
-        withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-            script {
-                // Run the script using bash and capture the output (public IP)
-                def publicIp = sh(script: '''
-                    bash get_public_ip_address.sh
-                ''', returnStdout: true).trim()
-
-                echo "Public IP Address: ${publicIp}"
-
-                // Check if the public IP was successfully retrieved
-                if (publicIp && publicIp != "Could not retrieve public IP address. Please verify the instance name and state.") {
-                    // Output the retrieved public IP
-                    echo "Public IP Address retrieved: ${publicIp}"
-
-                    // Now you can use the public IP directly for SSH connection
-                    // Assuming you have an AWS EC2 SSH private key stored in credentials
-                    sshagent(['aws-dev-deploy-ec2-instance']) {
-                        sh """
-                            echo 'Connecting to EC2 instance at ${publicIp}...'
-                            ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} 'echo "SSH Connection Successful!"'
-                        """
+        stage('Get EC2 IP Address') {
+            steps {
+                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                    script {
+                        // Run the command to get the public IP address
+                        def publicIp = sh(script: 'bash get_public_ip_address.sh', returnStdout: true).trim()
+                        
+                        // Set the IP as an environment variable for subsequent stages
+                        env.EC2_IP = publicIp
+                        echo "Public IP Address retrieved: ${env.EC2_IP}"
                     }
-                } else {
-                    // If no IP was retrieved or there was an error, stop the build with an error message
-                    error "Failed to retrieve EC2 public IP address."
                 }
             }
         }
-    }
-}
 
-
-
-
-        /*stage('Deploy - AWS EC2') {
+        stage('Deploy - AWS EC2') {
             when {
                 branch 'feature/*'
             }
@@ -201,8 +179,14 @@ pipeline {
                             string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
                             string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
                         ]) {
+                            // Run the script to fetch the public IP address
+                            def publicIp = sh(script: '''
+                                bash get_public_ip_address.sh
+                            ''', returnStdout: true).trim()
+
+                            // SSH into the EC2 instance using the retrieved public IP
                             sh """
-                                ssh -o StrictHostKeyChecking=no ubuntu@${env.EC2_IP} "
+                                ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
                                     if sudo docker ps -a | grep -q 'solar-system'; then
                                         echo 'Container found. Stopping...'
                                         sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
@@ -219,9 +203,9 @@ pipeline {
                     }
                 }
             }
-        }*/
+        }
 
-        /*stage('Integration Testing - AWS EC2') {
+        stage('Integration Testing - AWS EC2') {
             when {
                 branch 'feature/*'
             }
@@ -234,7 +218,7 @@ pipeline {
                     '''
                 }
             }
-        }*/
+        }
     }
 
     post {
