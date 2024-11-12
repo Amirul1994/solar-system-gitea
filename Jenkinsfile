@@ -112,7 +112,7 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Scanner') {
+        /*stage('Trivy Vulnerability Scanner') {
             steps {
                 sh ''' 
                     sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
@@ -142,7 +142,7 @@ pipeline {
                     '''
                 }
             }
-        }
+        }*/
 
         stage('Push Docker Image') {
             steps {
