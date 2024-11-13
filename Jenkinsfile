@@ -11,9 +11,9 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
-        //DOCKER_USERNAME = ''
-        //DOCKER_PASSWORD = ''
-        //SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
+        // DOCKER_USERNAME = ''
+        // DOCKER_PASSWORD = ''
+        // SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
     }
 
     options {
@@ -54,35 +54,35 @@ pipeline {
                         '''
                     }
                 }
-                
-                /*stage('OWASP Dependency Check') {
+
+                stage('OWASP Dependency Check') {
                     steps {
-                        dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''', 
-                                        nvdCredentialsId: 'dependency-check-nvd-api-key', 
+                        dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
+                                        nvdCredentialsId: 'dependency-check-nvd-api-key',
                                         odcInstallation: 'OWASP-DepCheck-11'
-                        
+
                         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
                     }
-                }*/
+                }
             }
         }
 
-        // stage('Unit Testing') {
-        //     steps {
-        //         sh 'echo Colon-Separated - $MONGO_DB_CREDS'       
-        //         sh 'echo Username - $MONGO_DB_CREDS_USR'
-        //         sh 'echo Password - $MONGO_DB_CREDS_PSW'        
-        //         sh 'npm test'
-        //     }
-        // }
+        stage('Unit Testing') {
+            steps {
+                sh 'echo Colon-Separated - $MONGO_DB_CREDS'
+                sh 'echo Username - $MONGO_DB_CREDS_USR'
+                sh 'echo Password - $MONGO_DB_CREDS_PSW'
+                sh 'npm test'
+            }
+        }
 
-        // stage('Code Coverage') {
-        //     steps {
-        //         catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-        //             sh 'npm run coverage'
-        //         }
-        //     }
-        // }
+        stage('Code Coverage') {
+            steps {
+                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+                    sh 'npm run coverage'
+                }
+            }
+        }
 
         /*
         stage('SAST - SonarQube') {
@@ -90,7 +90,7 @@ pipeline {
                 timeout(time: 60, unit: 'SECONDS') {
                     withSonarQubeEnv('sonar-qube-server') {
                         sh 'echo $SONAR_SCANNER_HOME'
-                
+
                         sh '''
                             $SONAR_SCANNER_HOME/bin/sonar-scanner \
                                  -Dsonar.projectKey=Kodekloud-System-Project \
@@ -103,7 +103,8 @@ pipeline {
                     waitForQualityGate abortPipeline: true
                 }
             }
-        }*/
+        }
+        */
 
         stage('Build Docker Image') {
             steps {
@@ -112,9 +113,9 @@ pipeline {
             }
         }
 
-        /*stage('Trivy Vulnerability Scanner') {
+        stage('Trivy Vulnerability Scanner') {
             steps {
-                sh ''' 
+                sh '''
                     sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
                         --severity LOW,MEDIUM,HIGH \
                         --exit-code 0 \
@@ -125,7 +126,7 @@ pipeline {
                         --severity CRITICAL \
                         --exit-code 1 \
                         --quiet \
-                        --format json -o trivy-image-CRITICAL-results.json             
+                        --format json -o trivy-image-CRITICAL-results.json
                 '''
             }
 
@@ -133,67 +134,61 @@ pipeline {
                 always {
                     sh '''
                         sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
-                        
                         sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
-                        
                         sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
-                        
                         sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
                     '''
                 }
             }
-        }*/
+        }
 
         stage('Push Docker Image') {
             steps {
-                withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
+                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                     sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
                 }
             }
         }
 
-       
+        stage('Deploy - AWS EC2') {
+            when {
+                branch 'feature/*'
+            }
 
-       stage('Deploy - AWS EC2') {
-    when {
-        branch 'feature/*'
-    }
+            steps {
+                script {
+                    withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                        sshagent(['aws-dev-deploy-ec2-instance']) {
+                            withCredentials([
+                                string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
+                                string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
+                            ]) {
+                                
+                                def publicIp = sh(script: '''
+                                    bash get_public_ip_address.sh
+                                ''', returnStdout: true).trim()
 
-    steps {
-        script {
-            withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                sshagent(['aws-dev-deploy-ec2-instance']) {
-                    withCredentials([
-                        string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
-                        string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
-                    ]) {
-                        // Run the script to fetch the public IP address
-                        def publicIp = sh(script: '''
-                            bash get_public_ip_address.sh
-                        ''', returnStdout: true).trim()
-
-                        // SSH into the EC2 instance using the retrieved public IP
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
-                                if sudo docker ps -a | grep -q 'solar-system'; then
-                                    echo 'Container found. Stopping...'
-                                    sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
-                                    echo 'Container stopped and removed.'
-                                fi
-                                sudo docker run --name solar-system \
-                                    -e MONGO_URI=${env.MONGO_URI} \
-                                    -e MONGO_USERNAME=${MONGO_USERNAME} \
-                                    -e MONGO_PASSWORD=${MONGO_PASSWORD} \
-                                    -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-                            "
-                        """
+                                
+                                sh """
+                                    ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
+                                        if sudo docker ps -a | grep -q 'solar-system'; then
+                                            echo 'Container found. Stopping...'
+                                            sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+                                            echo 'Container stopped and removed.'
+                                        fi
+                                        sudo docker run --name solar-system \
+                                            -e MONGO_URI=${env.MONGO_URI} \
+                                            -e MONGO_USERNAME=${MONGO_USERNAME} \
+                                            -e MONGO_PASSWORD=${MONGO_PASSWORD} \
+                                            -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+                                    "
+                                """
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
-
 
         stage('Integration Testing - AWS EC2') {
             when {
@@ -205,6 +200,23 @@ pipeline {
                 withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
                     sh '''
                         bash integration-testing-ec2.sh
+                    '''
+                }
+            }
+        } 
+
+        stage('K8S Update Image Tag') {
+            when {
+                branch 'PR*'
+            } 
+            steps {
+                sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
+                dir("solar-system-gitops-argocd/kubernetes"){
+                    sh ''' 
+                        git checkout main
+                        git checkout -b feature-$BUILD_ID
+                        sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
+                        cat deployment.yaml 
                     '''
                 }
             }
