@@ -151,65 +151,65 @@ pipeline {
             }
         }
 
-        stage('Deploy - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+        // stage('Deploy - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
 
-            steps {
-                script {
-                    withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                        sshagent(['aws-dev-deploy-ec2-instance']) {
-                            withCredentials([
-                                string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
-                                string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
-                            ]) {
+        //     steps {
+        //         script {
+        //             withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+        //                 sshagent(['aws-dev-deploy-ec2-instance']) {
+        //                     withCredentials([
+        //                         string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
+        //                         string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
+        //                     ]) {
                                 
-                                def publicIp = sh(script: '''
-                                    bash get_public_ip_address.sh
-                                ''', returnStdout: true).trim()
+        //                         def publicIp = sh(script: '''
+        //                             bash get_public_ip_address.sh
+        //                         ''', returnStdout: true).trim()
 
                                 
-                                sh """
-                                    ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
-                                        if sudo docker ps -a | grep -q 'solar-system'; then
-                                            echo 'Container found. Stopping...'
-                                            sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
-                                            echo 'Container stopped and removed.'
-                                        fi
-                                        sudo docker run --name solar-system \
-                                            -e MONGO_URI=${env.MONGO_URI} \
-                                            -e MONGO_USERNAME=${MONGO_USERNAME} \
-                                            -e MONGO_PASSWORD=${MONGO_PASSWORD} \
-                                            -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-                                    "
-                                """
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                         sh """
+        //                             ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
+        //                                 if sudo docker ps -a | grep -q 'solar-system'; then
+        //                                     echo 'Container found. Stopping...'
+        //                                     sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+        //                                     echo 'Container stopped and removed.'
+        //                                 fi
+        //                                 sudo docker run --name solar-system \
+        //                                     -e MONGO_URI=${env.MONGO_URI} \
+        //                                     -e MONGO_USERNAME=${MONGO_USERNAME} \
+        //                                     -e MONGO_PASSWORD=${MONGO_PASSWORD} \
+        //                                     -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+        //                             "
+        //                         """
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Integration Testing - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+        // stage('Integration Testing - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
 
-            steps {
-                sh 'printenv | grep -i branch'
-                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                    sh '''
-                        bash integration-testing-ec2.sh
-                    '''
-                }
-            }
-        } 
+        //     steps {
+        //         sh 'printenv | grep -i branch'
+        //         withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+        //             sh '''
+        //                 bash integration-testing-ec2.sh
+        //             '''
+        //         }
+        //     }
+        // } 
 
         stage('K8S Update Image Tag') {
-            // when {
-            //     branch 'PR*'
-            // } 
+            when {
+                branch 'PR*'
+            } 
             steps {
                 sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
                 dir("solar-system-gitops-argocd/kubernetes"){
@@ -226,6 +226,25 @@ pipeline {
                         git push -u origin feature-$BUILD_ID
                     '''
                 }
+            }
+        }
+
+        stage('K8S - Raise PR') {
+            when {
+                branch 'PR*'
+            } 
+            steps {
+                // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
+                sh """ 
+                    curl -L \
+                         -X POST \
+                         -H "Accept: application/vnd.github+json" \
+                         -H "Authorization: Bearer $GITHUB_TOKEN" \
+                         -H "X-GitHub-Api-Version: 2022-11-28" \
+                          https://api.github.com/repos/amirul1994/solar-system-gitops-argocd/pulls \
+                         -d '{"title":"Updated Docker Image","body":"updated docker image in deployment manifest","head":"feature-'${BUILD_ID}'","base":"main"}'
+
+                """
             }
         }
     }
