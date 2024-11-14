@@ -206,47 +206,47 @@ pipeline {
         //     }
         // } 
 
-        stage('K8S Update Image Tag') {
-            // when {
-            //     branch 'PR*'
-            // } 
-            steps {
-                sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
-                dir("solar-system-gitops-argocd/kubernetes"){
-                    sh ''' 
-                        git checkout main
-                        git checkout -b feature-$BUILD_ID
-                        sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
-                        cat deployment.yaml 
+        // stage('K8S Update Image Tag') {
+        //     // when {
+        //     //     branch 'PR*'
+        //     // } 
+        //     steps {
+        //         sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
+        //         dir("solar-system-gitops-argocd/kubernetes"){
+        //             sh ''' 
+        //                 git checkout main
+        //                 git checkout -b feature-$BUILD_ID
+        //                 sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
+        //                 cat deployment.yaml 
 
-                        git config --global user.email "amirulbrinto90@gmail.com"
-                        git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
-                        git add .
-                        git commit -m "updated docker image"
-                        git push -u origin feature-$BUILD_ID
-                    '''
-                }
-            }
-        }
+        //                 git config --global user.email "amirulbrinto90@gmail.com"
+        //                 git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
+        //                 git add .
+        //                 git commit -m "updated docker image"
+        //                 git push -u origin feature-$BUILD_ID
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('K8S - Raise PR') {
-            // when {
-            //     branch 'PR*'
-            // } 
-            steps {
-                // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
-                sh """ 
-                    curl -L \
-                         -X POST \
-                         -H "Accept: application/vnd.github+json" \
-                         -H "Authorization: Bearer $GITHUB_TOKEN" \
-                         -H "X-GitHub-Api-Version: 2022-11-28" \
-                          https://api.github.com/repos/amirul1994/solar-system-gitops-argocd/pulls \
-                         -d '{"title":"Updated Docker Image","body":"updated docker image in deployment manifest","head":"feature-'${BUILD_ID}'","base":"main"}'
+        // stage('K8S - Raise PR') {
+        //     // when {
+        //     //     branch 'PR*'
+        //     // } 
+        //     steps {
+        //         // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
+        //         sh """ 
+        //             curl -L \
+        //                  -X POST \
+        //                  -H "Accept: application/vnd.github+json" \
+        //                  -H "Authorization: Bearer $GITHUB_TOKEN" \
+        //                  -H "X-GitHub-Api-Version: 2022-11-28" \
+        //                   https://api.github.com/repos/amirul1994/solar-system-gitops-argocd/pulls \
+        //                  -d '{"title":"Updated Docker Image","body":"updated docker image in deployment manifest","head":"feature-'${BUILD_ID}'","base":"main"}'
 
-                """
-            }
-        } 
+        //         """
+        //     }
+        // } 
         
         stage('APP Deployed?') {
             // when {
