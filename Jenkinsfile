@@ -107,12 +107,12 @@ pipeline {
         // }
         
 
-        // stage('Build Docker Image') {
-        //     steps {
-        //         sh 'printenv'
-        //         sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
-        //     }
-        // }
+        stage('Build Docker Image') {
+            steps {
+                sh 'printenv'
+                sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
+            }
+        }
 
         // stage('Trivy Vulnerability Scanner') {
         //     steps {
@@ -143,13 +143,13 @@ pipeline {
         //     }
         // }
 
-        // stage('Push Docker Image') {
-        //     steps {
-        //         withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-        //             sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image') {
+            steps {
+                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                    sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
+                }
+            }
+        }
 
         // stage('Deploy - AWS EC2') {
         //     when {
@@ -229,24 +229,24 @@ pipeline {
         //     }
         // }
 
-        // stage('K8S - Raise PR') {
-        //     // when {
-        //     //     branch 'PR*'
-        //     // } 
-        //     steps {
-        //         // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
-        //         sh """ 
-        //             curl -L \
-        //                  -X POST \
-        //                  -H "Accept: application/vnd.github+json" \
-        //                  -H "Authorization: Bearer $GITHUB_TOKEN" \
-        //                  -H "X-GitHub-Api-Version: 2022-11-28" \
-        //                   https://api.github.com/repos/amirul1994/solar-system-gitops-argocd/pulls \
-        //                  -d '{"title":"Updated Docker Image","body":"updated docker image in deployment manifest","head":"feature-'${BUILD_ID}'","base":"main"}'
+        stage('K8S - Raise PR') {
+            // when {
+            //     branch 'PR*'
+            // } 
+            steps {
+                // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
+                sh """ 
+                    curl -L \
+                         -X POST \
+                         -H "Accept: application/vnd.github+json" \
+                         -H "Authorization: Bearer $GITHUB_TOKEN" \
+                         -H "X-GitHub-Api-Version: 2022-11-28" \
+                          https://api.github.com/repos/amirul1994/solar-system-gitops-argocd/pulls \
+                         -d '{"title":"Updated Docker Image","body":"updated docker image in deployment manifest","head":"feature-'${BUILD_ID}'","base":"main"}'
 
-        //         """
-        //     }
-        // } 
+                """
+            }
+        } 
         
         stage('APP Deployed?') {
             // when {
