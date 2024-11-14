@@ -207,9 +207,9 @@ pipeline {
         // } 
 
         stage('K8S Update Image Tag') {
-            when {
-                branch 'PR*'
-            } 
+            // when {
+            //     branch 'PR*'
+            // } 
             steps {
                 sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
                 dir("solar-system-gitops-argocd/kubernetes"){
