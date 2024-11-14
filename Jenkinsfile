@@ -230,9 +230,9 @@ pipeline {
         }
 
         stage('K8S - Raise PR') {
-            when {
-                branch 'PR*'
-            } 
+            // when {
+            //     branch 'PR*'
+            // } 
             steps {
                 // get the sample commad from https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28 
                 sh """ 
