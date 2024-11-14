@@ -206,28 +206,28 @@ pipeline {
         //     }
         // } 
 
-        // stage('K8S Update Image Tag') {
-        //     // when {
-        //     //     branch 'PR*'
-        //     // } 
-        //     steps {
-        //         sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
-        //         dir("solar-system-gitops-argocd/kubernetes"){
-        //             sh ''' 
-        //                 git checkout main
-        //                 git checkout -b feature-$BUILD_ID
-        //                 sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
-        //                 cat deployment.yaml 
+        stage('K8S Update Image Tag') {
+            // when {
+            //     branch 'PR*'
+            // } 
+            steps {
+                sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
+                dir("solar-system-gitops-argocd/kubernetes"){
+                    sh ''' 
+                        git checkout main
+                        git checkout -b feature-$BUILD_ID
+                        sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
+                        cat deployment.yaml 
 
-        //                 git config --global user.email "amirulbrinto90@gmail.com"
-        //                 git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
-        //                 git add .
-        //                 git commit -m "updated docker image"
-        //                 git push -u origin feature-$BUILD_ID
-        //             '''
-        //         }
-        //     }
-        // }
+                        git config --global user.email "amirulbrinto90@gmail.com"
+                        git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
+                        git add .
+                        git commit -m "updated docker image"
+                        git push -u origin feature-$BUILD_ID
+                    '''
+                }
+            }
+        }
 
         stage('K8S - Raise PR') {
             // when {
