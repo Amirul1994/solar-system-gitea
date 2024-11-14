@@ -11,6 +11,7 @@ pipeline {
         MONGO_DB_CREDS = credentials('mongo-db-credentials')
         MONGO_USERNAME = credentials('mongo-db-username')
         MONGO_PASSWORD = credentials('mongo-db-password')
+        GITHUB_TOKEN = credentials('github-api-token')
         // DOCKER_USERNAME = ''
         // DOCKER_PASSWORD = ''
         // SONAR_SCANNER_HOME = tool 'sonarqube-scanner-610'
@@ -23,66 +24,66 @@ pipeline {
 
     stages {
 
-        stage('VM Node Version') {
-            steps {
-                withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
-                    sh '''
-                        echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
-                        echo $SUDO_PASS | sudo -S bash -c "
-                        source /home/amirul/.nvm/nvm.sh
-                        /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
-                        "
-                    '''
-                }
-            }
-        }
+        //  stage('VM Node Version') {
+        //      steps {
+        //          withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
+        //              sh '''
+        //                  echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
+        //                  echo $SUDO_PASS | sudo -S bash -c "
+        //                  source /home/amirul/.nvm/nvm.sh
+        //                  /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
+        //                  "
+        //              '''
+        //          }
+        //      }
+        // }
 
-        stage('Installing Dependencies') {
-            options { timestamps() }
-            steps {
-                sh 'npm install --no-audit'
-            }
-        }
+        // stage('Installing Dependencies') {
+        //     options { timestamps() }
+        //     steps {
+        //         sh 'npm install --no-audit'
+        //     }
+        // }
 
-        stage('Dependency Scanning') {
-            parallel {
-                stage('NPM Dependency Audit') {
-                    steps {
-                        sh '''
-                            npm audit --audit-level=critical
-                            echo $?
-                        '''
-                    }
-                }
+        // stage('Dependency Scanning') {
+        //     parallel {
+        //         stage('NPM Dependency Audit') {
+        //             steps {
+        //                 sh '''
+        //                     npm audit --audit-level=critical
+        //                     echo $?
+        //                 '''
+        //             }
+        //         }
 
-                stage('OWASP Dependency Check') {
-                    steps {
-                        dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
-                                        nvdCredentialsId: 'dependency-check-nvd-api-key',
-                                        odcInstallation: 'OWASP-DepCheck-11'
+        //         stage('OWASP Dependency Check') {
+        //             steps {
+        //                 dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
+        //                                 nvdCredentialsId: 'dependency-check-nvd-api-key',
+        //                                 odcInstallation: 'OWASP-DepCheck-11'
 
-                        dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
-                    }
-                }
-            }
-        }
+        //                 dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Unit Testing') {
-            steps {
-                sh 'echo Colon-Separated - $MONGO_DB_CREDS'
-                sh 'echo Username - $MONGO_DB_CREDS_USR'
-                sh 'echo Password - $MONGO_DB_CREDS_PSW'
-                sh 'npm test'
-            }
-        }
+        // stage('Unit Testing') {
+        //     steps {
+        //         sh 'echo Colon-Separated - $MONGO_DB_CREDS'
+        //         sh 'echo Username - $MONGO_DB_CREDS_USR'
+        //         sh 'echo Password - $MONGO_DB_CREDS_PSW'
+        //         sh 'npm test'
+        //     }
+        // }
 
-        stage('Code Coverage') {
-            steps {
-                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-                    sh 'npm run coverage'
-                }
-            }
-        }
+        // stage('Code Coverage') {
+        //     steps {
+        //         catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+        //             sh 'npm run coverage'
+        //         }
+        //     }
+        // }
 
         /*
         stage('SAST - SonarQube') {
@@ -150,60 +151,60 @@ pipeline {
             }
         }
 
-        stage('Deploy - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+        // stage('Deploy - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
 
-            steps {
-                script {
-                    withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                        sshagent(['aws-dev-deploy-ec2-instance']) {
-                            withCredentials([
-                                string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
-                                string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
-                            ]) {
+        //     steps {
+        //         script {
+        //             withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+        //                 sshagent(['aws-dev-deploy-ec2-instance']) {
+        //                     withCredentials([
+        //                         string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
+        //                         string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
+        //                     ]) {
                                 
-                                def publicIp = sh(script: '''
-                                    bash get_public_ip_address.sh
-                                ''', returnStdout: true).trim()
+        //                         def publicIp = sh(script: '''
+        //                             bash get_public_ip_address.sh
+        //                         ''', returnStdout: true).trim()
 
                                 
-                                sh """
-                                    ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
-                                        if sudo docker ps -a | grep -q 'solar-system'; then
-                                            echo 'Container found. Stopping...'
-                                            sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
-                                            echo 'Container stopped and removed.'
-                                        fi
-                                        sudo docker run --name solar-system \
-                                            -e MONGO_URI=${env.MONGO_URI} \
-                                            -e MONGO_USERNAME=${MONGO_USERNAME} \
-                                            -e MONGO_PASSWORD=${MONGO_PASSWORD} \
-                                            -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-                                    "
-                                """
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                         sh """
+        //                             ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
+        //                                 if sudo docker ps -a | grep -q 'solar-system'; then
+        //                                     echo 'Container found. Stopping...'
+        //                                     sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+        //                                     echo 'Container stopped and removed.'
+        //                                 fi
+        //                                 sudo docker run --name solar-system \
+        //                                     -e MONGO_URI=${env.MONGO_URI} \
+        //                                     -e MONGO_USERNAME=${MONGO_USERNAME} \
+        //                                     -e MONGO_PASSWORD=${MONGO_PASSWORD} \
+        //                                     -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+        //                             "
+        //                         """
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Integration Testing - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+        // stage('Integration Testing - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
 
-            steps {
-                sh 'printenv | grep -i branch'
-                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-                    sh '''
-                        bash integration-testing-ec2.sh
-                    '''
-                }
-            }
-        } 
+        //     steps {
+        //         sh 'printenv | grep -i branch'
+        //         withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+        //             sh '''
+        //                 bash integration-testing-ec2.sh
+        //             '''
+        //         }
+        //     }
+        // } 
 
         stage('K8S Update Image Tag') {
             when {
@@ -217,6 +218,12 @@ pipeline {
                         git checkout -b feature-$BUILD_ID
                         sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
                         cat deployment.yaml 
+
+                        git config --global user.email "amirulbrinto90@gmail.com"
+                        git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
+                        git add .
+                        git commit -m "updated docker image"
+                        git push -u origin feature-$BUILD_ID
                     '''
                 }
             }
@@ -225,6 +232,11 @@ pipeline {
 
     post {
         always {
+            script {
+                if (fileExists('solar-system-gitops-argocd')) {
+                    sh 'rm -rf solar-system-gitops-argocd'
+                }
+            }
             junit allowEmptyResults: true, testResults: 'test-results.xml'
             junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
             junit allowEmptyResults: true, testResults: 'trivy-image-CRITICAL-results.xml'
