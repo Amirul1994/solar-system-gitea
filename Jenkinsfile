@@ -107,12 +107,12 @@ pipeline {
         // }
         
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'printenv'
-                sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
-            }
-        }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         sh 'printenv'
+        //         sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
+        //     }
+        // }
 
         // stage('Trivy Vulnerability Scanner') {
         //     steps {
@@ -143,13 +143,13 @@ pipeline {
         //     }
         // }
 
-        stage('Push Docker Image') {
-            steps {
-                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
-                }
-            }
-        }
+        // stage('Push Docker Image') {
+        //     steps {
+        //         withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+        //             sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
+        //         }
+        //     }
+        // }
 
         // stage('Deploy - AWS EC2') {
         //     when {
@@ -206,28 +206,28 @@ pipeline {
         //     }
         // } 
 
-        stage('K8S Update Image Tag') {
-            // when {
-            //     branch 'PR*'
-            // } 
-            steps {
-                sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
-                dir("solar-system-gitops-argocd/kubernetes"){
-                    sh ''' 
-                        git checkout main
-                        git checkout -b feature-$BUILD_ID
-                        sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
-                        cat deployment.yaml 
+        // stage('K8S Update Image Tag') {
+        //     // when {
+        //     //     branch 'PR*'
+        //     // } 
+        //     steps {
+        //         sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
+        //         dir("solar-system-gitops-argocd/kubernetes"){
+        //             sh ''' 
+        //                 git checkout main
+        //                 git checkout -b feature-$BUILD_ID
+        //                 sed -i "s#amirul1994.*#amirul1994/solar-system:$GIT_COMMIT#g" deployment.yaml
+        //                 cat deployment.yaml 
 
-                        git config --global user.email "amirulbrinto90@gmail.com"
-                        git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
-                        git add .
-                        git commit -m "updated docker image"
-                        git push -u origin feature-$BUILD_ID
-                    '''
-                }
-            }
-        }
+        //                 git config --global user.email "amirulbrinto90@gmail.com"
+        //                 git remote set-url origin https://$GITHUB_TOKEN@github.com/amirul1994/solar-system-gitops-argocd.git
+        //                 git add .
+        //                 git commit -m "updated docker image"
+        //                 git push -u origin feature-$BUILD_ID
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('K8S - Raise PR') {
             // when {
@@ -267,7 +267,7 @@ pipeline {
                sh ''' 
                     chmod 777 $(pwd)
                     sudo docker run -v $(pwd):/zap/wrk/:rw  ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-                    -t http://192.168.49.2:30000/api-docs/ \
+                    -t http://192.168.0.107:32300/api-docs/ \
                     -f openapi \
                     -r zap_report.html \
                     -w zap_report.md \
