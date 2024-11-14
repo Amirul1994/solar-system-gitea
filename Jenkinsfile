@@ -151,60 +151,60 @@ pipeline {
             }
         }
 
-        // stage('Deploy - AWS EC2') {
-        //     when {
-        //         branch 'feature/*'
-        //     }
+        stage('Deploy - AWS EC2') {
+            when {
+                branch 'feature/*'
+            }
 
-        //     steps {
-        //         script {
-        //             withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-        //                 sshagent(['aws-dev-deploy-ec2-instance']) {
-        //                     withCredentials([
-        //                         string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
-        //                         string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
-        //                     ]) {
+            steps {
+                script {
+                    withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                        sshagent(['aws-dev-deploy-ec2-instance']) {
+                            withCredentials([
+                                string(credentialsId: 'mongo-db-username', variable: 'MONGO_USERNAME'),
+                                string(credentialsId: 'mongo-db-password', variable: 'MONGO_PASSWORD')
+                            ]) {
                                 
-        //                         def publicIp = sh(script: '''
-        //                             bash get_public_ip_address.sh
-        //                         ''', returnStdout: true).trim()
+                                def publicIp = sh(script: '''
+                                    bash get_public_ip_address.sh
+                                ''', returnStdout: true).trim()
 
                                 
-        //                         sh """
-        //                             ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
-        //                                 if sudo docker ps -a | grep -q 'solar-system'; then
-        //                                     echo 'Container found. Stopping...'
-        //                                     sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
-        //                                     echo 'Container stopped and removed.'
-        //                                 fi
-        //                                 sudo docker run --name solar-system \
-        //                                     -e MONGO_URI=${env.MONGO_URI} \
-        //                                     -e MONGO_USERNAME=${MONGO_USERNAME} \
-        //                                     -e MONGO_PASSWORD=${MONGO_PASSWORD} \
-        //                                     -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
-        //                             "
-        //                         """
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+                                sh """
+                                    ssh -o StrictHostKeyChecking=no ubuntu@${publicIp} "
+                                        if sudo docker ps -a | grep -q 'solar-system'; then
+                                            echo 'Container found. Stopping...'
+                                            sudo docker stop 'solar-system' && sudo docker rm 'solar-system'
+                                            echo 'Container stopped and removed.'
+                                        fi
+                                        sudo docker run --name solar-system \
+                                            -e MONGO_URI=${env.MONGO_URI} \
+                                            -e MONGO_USERNAME=${MONGO_USERNAME} \
+                                            -e MONGO_PASSWORD=${MONGO_PASSWORD} \
+                                            -p 3000:3000 -d amirul1994/solar-system:$GIT_COMMIT
+                                    "
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-        // stage('Integration Testing - AWS EC2') {
-        //     when {
-        //         branch 'feature/*'
-        //     }
+        stage('Integration Testing - AWS EC2') {
+            when {
+                branch 'feature/*'
+            }
 
-        //     steps {
-        //         sh 'printenv | grep -i branch'
-        //         withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
-        //             sh '''
-        //                 bash integration-testing-ec2.sh
-        //             '''
-        //         }
-        //     }
-        // } 
+            steps {
+                sh 'printenv | grep -i branch'
+                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                    sh '''
+                        bash integration-testing-ec2.sh
+                    '''
+                }
+            }
+        } 
 
         stage('K8S Update Image Tag') {
             // when {
