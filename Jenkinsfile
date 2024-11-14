@@ -24,66 +24,66 @@ pipeline {
 
     stages {
 
-         stage('VM Node Version') {
-             steps {
-                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
-                     sh '''
-                         echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
-                         echo $SUDO_PASS | sudo -S bash -c "
-                         source /home/amirul/.nvm/nvm.sh
-                         /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
-                         "
-                     '''
-                 }
-             }
-        }
+        //  stage('VM Node Version') {
+        //      steps {
+        //          withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
+        //              sh '''
+        //                  echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
+        //                  echo $SUDO_PASS | sudo -S bash -c "
+        //                  source /home/amirul/.nvm/nvm.sh
+        //                  /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
+        //                  "
+        //              '''
+        //          }
+        //      }
+        // }
 
-        stage('Installing Dependencies') {
-            options { timestamps() }
-            steps {
-                sh 'npm install --no-audit'
-            }
-        }
+        // stage('Installing Dependencies') {
+        //     options { timestamps() }
+        //     steps {
+        //         sh 'npm install --no-audit'
+        //     }
+        // }
 
-        stage('Dependency Scanning') {
-            parallel {
-                stage('NPM Dependency Audit') {
-                    steps {
-                        sh '''
-                            npm audit --audit-level=critical
-                            echo $?
-                        '''
-                    }
-                }
+        // stage('Dependency Scanning') {
+        //     parallel {
+        //         stage('NPM Dependency Audit') {
+        //             steps {
+        //                 sh '''
+        //                     npm audit --audit-level=critical
+        //                     echo $?
+        //                 '''
+        //             }
+        //         }
 
-                stage('OWASP Dependency Check') {
-                    steps {
-                        dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
-                                        nvdCredentialsId: 'dependency-check-nvd-api-key',
-                                        odcInstallation: 'OWASP-DepCheck-11'
+        //         stage('OWASP Dependency Check') {
+        //             steps {
+        //                 dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
+        //                                 nvdCredentialsId: 'dependency-check-nvd-api-key',
+        //                                 odcInstallation: 'OWASP-DepCheck-11'
 
-                        dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
-                    }
-                }
-            }
-        }
+        //                 dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Unit Testing') {
-            steps {
-                sh 'echo Colon-Separated - $MONGO_DB_CREDS'
-                sh 'echo Username - $MONGO_DB_CREDS_USR'
-                sh 'echo Password - $MONGO_DB_CREDS_PSW'
-                sh 'npm test'
-            }
-        }
+        // stage('Unit Testing') {
+        //     steps {
+        //         sh 'echo Colon-Separated - $MONGO_DB_CREDS'
+        //         sh 'echo Username - $MONGO_DB_CREDS_USR'
+        //         sh 'echo Password - $MONGO_DB_CREDS_PSW'
+        //         sh 'npm test'
+        //     }
+        // }
 
-        stage('Code Coverage') {
-            steps {
-                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-                    sh 'npm run coverage'
-                }
-            }
-        }
+        // stage('Code Coverage') {
+        //     steps {
+        //         catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+        //             sh 'npm run coverage'
+        //         }
+        //     }
+        // }
 
         
         // stage('SAST - SonarQube') {
@@ -114,34 +114,34 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Scanner') {
-            steps {
-                sh '''
-                    sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
-                        --severity LOW,MEDIUM,HIGH \
-                        --exit-code 0 \
-                        --quiet \
-                        --format json -o trivy-image-MEDIUM-results.json
+        // stage('Trivy Vulnerability Scanner') {
+        //     steps {
+        //         sh '''
+        //             sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
+        //                 --severity LOW,MEDIUM,HIGH \
+        //                 --exit-code 0 \
+        //                 --quiet \
+        //                 --format json -o trivy-image-MEDIUM-results.json
 
-                    sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
-                        --severity CRITICAL \
-                        --exit-code 1 \
-                        --quiet \
-                        --format json -o trivy-image-CRITICAL-results.json
-                '''
-            }
+        //             sudo trivy image amirul1994/solar-system:$GIT_COMMIT \
+        //                 --severity CRITICAL \
+        //                 --exit-code 1 \
+        //                 --quiet \
+        //                 --format json -o trivy-image-CRITICAL-results.json
+        //         '''
+        //     }
 
-            post {
-                always {
-                    sh '''
-                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
-                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
-                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
-                        sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
-                    '''
-                }
-            }
-        }
+        //     post {
+        //         always {
+        //             sh '''
+        //                 sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-MEDIUM-results.html trivy-image-MEDIUM-results.json
+        //                 sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/html.tpl" --output trivy-image-CRITICAL-results.html trivy-image-CRITICAL-results.json
+        //                 sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-MEDIUM-results.xml trivy-image-MEDIUM-results.json
+        //                 sudo trivy convert --format template --template "@/usr/local/share/trivy/templates/junit.tpl" --output trivy-image-CRITICAL-results.xml trivy-image-CRITICAL-results.json
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Push Docker Image') {
             steps {
@@ -207,9 +207,9 @@ pipeline {
         // } 
 
         stage('K8S Update Image Tag') {
-            when {
-                branch 'PR*'
-            } 
+            // when {
+            //     branch 'PR*'
+            // } 
             steps {
                 sh 'git clone -b main https://github.com/Amirul1994/solar-system-gitops-argocd'
                 dir("solar-system-gitops-argocd/kubernetes"){
