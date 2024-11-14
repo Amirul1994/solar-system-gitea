@@ -24,88 +24,88 @@ pipeline {
 
     stages {
 
-        //  stage('VM Node Version') {
-        //      steps {
-        //          withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
-        //              sh '''
-        //                  echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
-        //                  echo $SUDO_PASS | sudo -S bash -c "
-        //                  source /home/amirul/.nvm/nvm.sh
-        //                  /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
-        //                  "
-        //              '''
-        //          }
-        //      }
-        // }
+         stage('VM Node Version') {
+             steps {
+                 withCredentials([string(credentialsId: 'amirul-sudo-password', variable: 'SUDO_PASS')]) {
+                     sh '''
+                         echo $SUDO_PASS | sudo -S /home/amirul/.nvm/versions/node/v23.1.0/bin/node -v
+                         echo $SUDO_PASS | sudo -S bash -c "
+                         source /home/amirul/.nvm/nvm.sh
+                         /home/amirul/.nvm/versions/node/v23.1.0/bin/npm -v
+                         "
+                     '''
+                 }
+             }
+        }
 
-        // stage('Installing Dependencies') {
-        //     options { timestamps() }
-        //     steps {
-        //         sh 'npm install --no-audit'
-        //     }
-        // }
-
-        // stage('Dependency Scanning') {
-        //     parallel {
-        //         stage('NPM Dependency Audit') {
-        //             steps {
-        //                 sh '''
-        //                     npm audit --audit-level=critical
-        //                     echo $?
-        //                 '''
-        //             }
-        //         }
-
-        //         stage('OWASP Dependency Check') {
-        //             steps {
-        //                 dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
-        //                                 nvdCredentialsId: 'dependency-check-nvd-api-key',
-        //                                 odcInstallation: 'OWASP-DepCheck-11'
-
-        //                 dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Unit Testing') {
-        //     steps {
-        //         sh 'echo Colon-Separated - $MONGO_DB_CREDS'
-        //         sh 'echo Username - $MONGO_DB_CREDS_USR'
-        //         sh 'echo Password - $MONGO_DB_CREDS_PSW'
-        //         sh 'npm test'
-        //     }
-        // }
-
-        // stage('Code Coverage') {
-        //     steps {
-        //         catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
-        //             sh 'npm run coverage'
-        //         }
-        //     }
-        // }
-
-        /*
-        stage('SAST - SonarQube') {
+        stage('Installing Dependencies') {
+            options { timestamps() }
             steps {
-                timeout(time: 60, unit: 'SECONDS') {
-                    withSonarQubeEnv('sonar-qube-server') {
-                        sh 'echo $SONAR_SCANNER_HOME'
+                sh 'npm install --no-audit'
+            }
+        }
 
+        stage('Dependency Scanning') {
+            parallel {
+                stage('NPM Dependency Audit') {
+                    steps {
                         sh '''
-                            $SONAR_SCANNER_HOME/bin/sonar-scanner \
-                                 -Dsonar.projectKey=Kodekloud-System-Project \
-                                 -Dsonar.sources=. \
-                                 -Dsonar.host.url=http://localhost:9000 \
-                                 -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
-                                 -Dsonar.tests=
+                            npm audit --audit-level=critical
+                            echo $?
                         '''
                     }
-                    waitForQualityGate abortPipeline: true
+                }
+
+                stage('OWASP Dependency Check') {
+                    steps {
+                        dependencyCheck additionalArguments: '''--scan './' --out './' --format 'ALL' --prettyPrint --disableYarnAudit''',
+                                        nvdCredentialsId: 'dependency-check-nvd-api-key',
+                                        odcInstallation: 'OWASP-DepCheck-11'
+
+                        dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
+                    }
                 }
             }
         }
-        */
+
+        stage('Unit Testing') {
+            steps {
+                sh 'echo Colon-Separated - $MONGO_DB_CREDS'
+                sh 'echo Username - $MONGO_DB_CREDS_USR'
+                sh 'echo Password - $MONGO_DB_CREDS_PSW'
+                sh 'npm test'
+            }
+        }
+
+        stage('Code Coverage') {
+            steps {
+                catchError(buildResult: 'SUCCESS', message: 'Oops! it will be fixed in future releases', stageResult: 'UNSTABLE') {
+                    sh 'npm run coverage'
+                }
+            }
+        }
+
+        
+        // stage('SAST - SonarQube') {
+        //     steps {
+        //         timeout(time: 60, unit: 'SECONDS') {
+        //             withSonarQubeEnv('sonar-qube-server') {
+        //                 sh 'echo $SONAR_SCANNER_HOME'
+
+        //                 sh '''
+        //                     $SONAR_SCANNER_HOME/bin/sonar-scanner \
+        //                          -Dsonar.projectKey=Kodekloud-System-Project \
+        //                          -Dsonar.sources=. \
+        //                          -Dsonar.host.url=http://localhost:9000 \
+        //                          -Dsonar.javascript.lcov.reportPaths=./coverage/lcov.info
+        //                          -Dsonar.tests=
+        //                 '''
+        //             }
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
+        
 
         stage('Build Docker Image') {
             steps {
