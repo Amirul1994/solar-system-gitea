@@ -107,12 +107,12 @@ pipeline {
         // }
         
 
-        // stage('Build Docker Image') {
-        //     steps {
-        //         sh 'printenv'
-        //         sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
-        //     }
-        // }
+        stage('Build Docker Image') {
+            steps {
+                sh 'printenv'
+                sh 'sudo docker build -t amirul1994/solar-system:$GIT_COMMIT .'
+            }
+        }
 
         // stage('Trivy Vulnerability Scanner') {
         //     steps {
@@ -143,13 +143,13 @@ pipeline {
         //     }
         // }
 
-        // stage('Push Docker Image') {
-        //     steps {
-        //         withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-        //             sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image') {
+            steps {
+                withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                    sh 'sudo docker push amirul1994/solar-system:$GIT_COMMIT'
+                }
+            }
+        }
 
         // stage('Deploy - AWS EC2') {
         //     when {
@@ -248,36 +248,57 @@ pipeline {
         //     }
         // } 
         
-        stage('APP Deployed?') {
-            // when {
-            //     branch 'PR*'
-            // }
+        // stage('APP Deployed?') {
+        //     // when {
+        //     //     branch 'PR*'
+        //     // }
+        //     // steps {
+        //     //     timeout(time: 1, unit: 'DAYS') {
+        //     //         input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application is Synced'
+        //     //     }
+        //     // }
+        // }
+
+        // stage('DAST - OWASP ZAP') {
+        //     // when {
+        //     //     branch 'PR*'
+        //     // }
+        //     steps {
+        //        sh ''' 
+        //             chmod 777 $(pwd)
+        //             sudo docker run -v $(pwd):/zap/wrk/:rw  ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+        //             -t http://192.168.0.107:32300/api-docs/ \
+        //             -f openapi \
+        //             -r zap_report.html \
+        //             -w zap_report.md \
+        //             -J zap.json_report.json \
+        //             -x zap.xml_report.xml \
+        //             -c zap_ignore_rules
+        //         ''' 
+        //     }
+        // }
+
+        stage('Upload - AWS S3') {
+            when {
+                branch 'PR*'
+            } 
             steps {
-                timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application is Synced'
-                }
+                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1'){
+                    sh '''
+                        ls -ltr 
+                        sudo mkdir reports-$BUILD_ID/
+                        sudo cp -rf coverage/ reports-$BUILD_ID/
+                        sudo cp dependency*.* test-results.xml trivy*.* zap*.* reports-$BUILD_ID/
+                        ls -ltr reports-$BUILD_ID/
+                    '''
+                    s3Upload(
+                        file:"reports-$BUILD_ID",
+                        bucket:'solar-system-gitea-jenkins-reports-bucket',
+                        path:"jenkins-$BUILD_ID/"
+                    )
+                }    
             }
         }
-
-        stage('DAST - OWASP ZAP') {
-            // when {
-            //     branch 'PR*'
-            // }
-            steps {
-               sh ''' 
-                    chmod 777 $(pwd)
-                    sudo docker run -v $(pwd):/zap/wrk/:rw  ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-                    -t http://192.168.0.107:32300/api-docs/ \
-                    -f openapi \
-                    -r zap_report.html \
-                    -w zap_report.md \
-                    -J zap.json_report.json \
-                    -x zap.xml_report.xml \
-                    -c zap_ignore_rules
-                ''' 
-            }
-        }
-
         
     }
 
