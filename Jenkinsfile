@@ -279,9 +279,9 @@ pipeline {
         // }
 
         stage('Upload - AWS S3') {
-            when {
-                branch 'PR*'
-            } 
+            // when {
+            //     branch 'PR*'
+            // } 
             steps {
                 withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1'){
                     sh '''
