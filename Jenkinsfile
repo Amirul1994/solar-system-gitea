@@ -272,7 +272,8 @@ pipeline {
                     -r zap_report.html \
                     -w zap_report.md \
                     -J zap.json_report.json \
-                    -x zap.xml_report.xml
+                    -x zap.xml_report.xml \
+                    -c zap_ignore_rules
                 ''' 
             }
         }
@@ -288,13 +289,21 @@ pipeline {
                 }
             }
             junit allowEmptyResults: true, testResults: 'test-results.xml'
+            
             junit allowEmptyResults: true, testResults: 'dependency-check-junit.xml'
+            
             junit allowEmptyResults: true, testResults: 'trivy-image-CRITICAL-results.xml'
+            
             junit allowEmptyResults: true, testResults: 'trivy-image-MEDIUM-results.xml'
 
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'zap_report.html', reportName: 'DAST - OWASP ZAP Report', reportTitles: '', useWrapperFileDirectly: true])
+            
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
+            
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-MEDIUM-results.html', reportName: 'Trivy Image Medium Vul Report', reportTitles: '', useWrapperFileDirectly: true])
+            
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependency Check HTML Report', reportTitles: ''])
+            
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'coverage/lcov-report', reportFiles: 'index.html', reportName: 'Code Coverage HTML Report', reportTitles: ''])
         }
     }
