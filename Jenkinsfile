@@ -288,7 +288,7 @@ pipeline {
                         ls -ltr 
                         sudo mkdir reports-$BUILD_ID/
                         sudo cp -rf coverage/ reports-$BUILD_ID/
-                        sudo cp dependency*.* test-results.xml trivy*.* zap*.* reports-$BUILD_ID/
+                        sudo cp dependency*.* test-results.xml reports-$BUILD_ID/
                         ls -ltr reports-$BUILD_ID/
                     '''
                     s3Upload(
