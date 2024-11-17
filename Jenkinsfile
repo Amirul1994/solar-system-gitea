@@ -363,8 +363,7 @@ pipeline {
                     sh '''
                         sleep 30s
                         
-                        function_url_data=$(aws lambda get-function-url-config --function-name
-                        solar-system-gitea-function)
+                        function_url_data=$(aws lambda get-function-url-config --function-name solar-system-gitea-function)
                         
                         function_url=$(echo $function_url_data | jq -r '.FunctionUrl | sub("/$"; "")')
                         
