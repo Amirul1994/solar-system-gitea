@@ -334,7 +334,7 @@ pipeline {
 
                     s3Upload(
                         file: "solar-system-gitea-lambda-${BUILD_ID}.zip",
-                        bucket: 'soloar-system-gitea-lambda-bucket'
+                        bucket: 'solar-system-gitea-lambda-bucket'
                     ) 
                     //
                     sh '''
