@@ -336,7 +336,7 @@ pipeline {
                         file: "solar-system-gitea-lambda-${BUILD_ID}.zip"
                         bucket: 'soloar-system-gitea-lambda-bucket'
                     ) 
-
+                    //
                     sh '''
                          aws lambda update-function-code \
                              --function-name solar-system-gitea-function \
