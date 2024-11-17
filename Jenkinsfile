@@ -336,7 +336,14 @@ pipeline {
                         file: "solar-system-gitea-lambda-${BUILD_ID}.zip",
                         bucket: 'solar-system-gitea-lambda-bucket'
                     ) 
-                    //
+                    
+                    sh """
+                         aws lambda update-function-configuration \
+                             --function-name solar-system-gitea-function \
+                             --environment '{"Variables":{ "MONGO_USERNAME": "${MONGO_USERNAME}",
+                             "MONGO_PASSWORD": "${MONGO_PASSWORD}","MONGO_URI": "${MONGO_URI}"}}'
+                    """
+
                     sh '''
                          aws lambda update-function-code \
                              --function-name solar-system-gitea-function \
