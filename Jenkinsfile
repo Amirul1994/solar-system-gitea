@@ -300,13 +300,49 @@ pipeline {
         //     }
         // }
 
-        stage('Deploy to Prod?') {
+        // stage('Deploy to Prod?') {
+        //     when {
+        //         branch 'main'
+        //     }
+        //     steps {
+        //         timeout(time: 1, unit: 'DAYS') {
+        //             input message: 'Deploy to Production?', ok: 'YES! Try this on Production', submitter: 'administrator'
+        //         }
+        //     }
+        // }
+
+          stage('Lambda - S3 Upload & Deploy') {
             when {
                 branch 'main'
             }
             steps {
-                timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Deploy to Production?', ok: 'YES! Try this on Production', submitter: 'administrator'
+                withAWS(credentials: 'aws-s3-ec2-lambda-creds', region: 'us-east-1') {
+                    sh '''
+                         tail -5 app.js
+                         echo "******************"
+                         sed -i "/^app\\.listen(3000/ s/^/\\/\\//" app.js
+                         sed -i "s/^module.exports = app;/\\/\\/module.exports = app;/g" app.js
+                         sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
+                         echo "*****************************************"
+                         tail -5 app.js
+                    '''
+
+                    sh '''
+                        zip -qr solar-system-gitea-lambda-$BUILD_ID.zip app* package* index.html node*
+                        ls -ltr solar-system-gitea-lambda-$BUILD_ID.zip
+                    '''
+
+                    s3Upload(
+                        file: "solar-system-gitea-lambda-${BUILD_ID}.zip"
+                        bucket: 'soloar-system-gitea-lambda-bucket'
+                    ) 
+
+                    sh '''
+                         aws lambda update-function-code \
+                             --function-name solar-system-gitea-function \
+                             --s3-bucket solar-system-gitea-lambda-bucket \
+                             --s3-key solar-system-gitea-lambda-${BUILD_ID}.zip
+                    '''
                 }
             }
         }
