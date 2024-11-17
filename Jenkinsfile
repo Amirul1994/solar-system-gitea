@@ -367,7 +367,7 @@ pipeline {
                         
                         function_url=$(echo $function_url_data | jq -r '.FunctionUrl | sub("/$"; "")')
                         
-                        curl -Is $function_url/live | grep -i "200 OK
+                        curl -Is $function_url/live | grep -i "200 OK"
                     '''
                 }
             }
